@@ -134,6 +134,10 @@ export const api = {
     await request(`/projects/${id}`, { method: 'DELETE' });
   },
 
+  async restoreProject(id: string): Promise<void> {
+    await request(`/projects/${id}/restore`, { method: 'POST' });
+  },
+
   async setVerified(id: string, isVerified: boolean): Promise<void> {
     await request(`/projects/${id}/verify?isVerified=${isVerified}`, { method: 'POST' });
   },
@@ -187,6 +191,10 @@ export const api = {
 
   async deleteOrDeactivateLink(linkId: string, hardDelete = false): Promise<void> {
     await request(`/links/${linkId}?hardDelete=${hardDelete}`, { method: 'DELETE' });
+  },
+
+  async deleteLink(linkId: string, hardDelete = false): Promise<void> {
+    return this.deleteOrDeactivateLink(linkId, hardDelete);
   },
 
   async setPrimaryLink(linkId: string): Promise<void> {
