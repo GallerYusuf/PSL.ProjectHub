@@ -11,11 +11,24 @@ public interface IProjectService
     Task<ProjectDetailDto> CreateProjectAsync(CreateProjectRequest request, CancellationToken cancellationToken = default);
     Task<ProjectDetailDto?> UpdateProjectAsync(Guid id, UpdateProjectRequest request, CancellationToken cancellationToken = default);
     Task<bool> ArchiveProjectAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> RestoreProjectAsync(Guid id, CancellationToken cancellationToken = default);
     Task<bool> SetVerifiedStatusAsync(Guid id, bool isVerified, CancellationToken cancellationToken = default);
+    // Component CRUD
     Task<bool> AddComponentAsync(Guid projectId, ProjectComponentDto component, CancellationToken cancellationToken = default);
+    Task<bool> UpdateComponentAsync(Guid componentId, ProjectComponentDto component, CancellationToken cancellationToken = default);
+    Task<bool> DeleteComponentAsync(Guid componentId, CancellationToken cancellationToken = default);
+    // Integration CRUD
     Task<bool> AddIntegrationAsync(Guid projectId, ProjectIntegrationDto integration, CancellationToken cancellationToken = default);
+    Task<bool> UpdateIntegrationAsync(Guid integrationId, ProjectIntegrationDto integration, CancellationToken cancellationToken = default);
+    Task<bool> DeleteIntegrationAsync(Guid integrationId, CancellationToken cancellationToken = default);
+    // Release CRUD
     Task<bool> AddReleaseAsync(Guid projectId, ProjectReleaseDto release, CancellationToken cancellationToken = default);
+    Task<bool> UpdateReleaseAsync(Guid releaseId, ProjectReleaseDto release, CancellationToken cancellationToken = default);
+    Task<bool> DeleteReleaseAsync(Guid releaseId, CancellationToken cancellationToken = default);
+    // Note CRUD
     Task<bool> AddNoteAsync(Guid projectId, ProjectNoteDto note, CancellationToken cancellationToken = default);
+    Task<bool> UpdateNoteAsync(Guid noteId, ProjectNoteDto note, CancellationToken cancellationToken = default);
+    Task<bool> DeleteNoteAsync(Guid noteId, CancellationToken cancellationToken = default);
 }
 
 public interface IProjectLinkService

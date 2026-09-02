@@ -383,6 +383,118 @@ public class ProjectService : IProjectService
         return true;
     }
 
+    public async Task<bool> RestoreProjectAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var project = await _context.Projects
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+        if (project == null || !project.IsArchived) return false;
+
+        project.IsArchived = false;
+        project.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> UpdateComponentAsync(Guid componentId, ProjectComponentDto component, CancellationToken cancellationToken = default)
+    {
+        var existing = await _context.ProjectComponents.FindAsync([componentId], cancellationToken);
+        if (existing == null) return false;
+
+        existing.Name = component.Name;
+        existing.ComponentType = component.ComponentType;
+        existing.Description = component.Description;
+        existing.Environment = component.Environment;
+        existing.DisplayOrder = component.DisplayOrder;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> DeleteComponentAsync(Guid componentId, CancellationToken cancellationToken = default)
+    {
+        var existing = await _context.ProjectComponents.FindAsync([componentId], cancellationToken);
+        if (existing == null) return false;
+
+        _context.ProjectComponents.Remove(existing);
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> UpdateIntegrationAsync(Guid integrationId, ProjectIntegrationDto integration, CancellationToken cancellationToken = default)
+    {
+        var existing = await _context.ProjectIntegrations.FindAsync([integrationId], cancellationToken);
+        if (existing == null) return false;
+
+        existing.Name = integration.Name;
+        existing.IntegrationType = integration.IntegrationType;
+        existing.Description = integration.Description;
+        existing.IsCritical = integration.IsCritical;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> DeleteIntegrationAsync(Guid integrationId, CancellationToken cancellationToken = default)
+    {
+        var existing = await _context.ProjectIntegrations.FindAsync([integrationId], cancellationToken);
+        if (existing == null) return false;
+
+        _context.ProjectIntegrations.Remove(existing);
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> UpdateReleaseAsync(Guid releaseId, ProjectReleaseDto release, CancellationToken cancellationToken = default)
+    {
+        var existing = await _context.ProjectReleases.FindAsync([releaseId], cancellationToken);
+        if (existing == null) return false;
+
+        existing.Version = release.Version;
+        existing.Title = release.Title;
+        existing.Description = release.Description;
+        existing.ReleaseDate = release.ReleaseDate;
+        existing.Environment = release.Environment;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> DeleteReleaseAsync(Guid releaseId, CancellationToken cancellationToken = default)
+    {
+        var existing = await _context.ProjectReleases.FindAsync([releaseId], cancellationToken);
+        if (existing == null) return false;
+
+        _context.ProjectReleases.Remove(existing);
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> UpdateNoteAsync(Guid noteId, ProjectNoteDto note, CancellationToken cancellationToken = default)
+    {
+        var existing = await _context.ProjectNotes.FindAsync([noteId], cancellationToken);
+        if (existing == null) return false;
+
+        existing.Title = note.Title;
+        existing.Content = note.Content;
+        existing.NoteType = note.NoteType;
+        existing.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task<bool> DeleteNoteAsync(Guid noteId, CancellationToken cancellationToken = default)
+    {
+        var existing = await _context.ProjectNotes.FindAsync([noteId], cancellationToken);
+        if (existing == null) return false;
+
+        _context.ProjectNotes.Remove(existing);
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
     private static ProjectSummaryDto MapToSummaryDto(Project p)
     {
         var activeLinks = p.Links.Where(l => l.IsActive).OrderBy(l => l.DisplayOrder).ToList();

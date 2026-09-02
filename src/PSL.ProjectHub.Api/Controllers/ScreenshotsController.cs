@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PSL.ProjectHub.Application.DTOs;
@@ -7,6 +7,10 @@ using PSL.ProjectHub.Infrastructure.Data;
 
 namespace PSL.ProjectHub.Api.Controllers;
 
+/// <summary>
+/// Ekran görüntüsü yönetimi. Dosyalar web root dışında saklanır; ID tabanlı endpoint ile
+/// yetkili kullanıcıya sunulur. DB''de sunucu yolu saklanmaz.
+/// </summary>
 [ApiController]
 [Authorize]
 public class ScreenshotsController : ControllerBase
@@ -16,7 +20,6 @@ public class ScreenshotsController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly ILogger<ScreenshotsController> _logger;
 
-    // Desteklenen görsel uzantıları ve izin verilen MIME türleri
     private static readonly Dictionary<string, string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         { ".png", "image/png" },
@@ -42,18 +45,16 @@ public class ScreenshotsController : ControllerBase
         var configuredPath = _configuration["Storage:ScreenshotsPath"];
         var uploadDir = !string.IsNullOrWhiteSpace(configuredPath)
             ? configuredPath
-            : Path.Combine(_env.WebRootPath ?? _env.ContentRootPath, "uploads", "screenshots");
+            : Path.Combine(_env.ContentRootPath, "uploads", "screenshots");
 
         if (!Directory.Exists(uploadDir))
-        {
             Directory.CreateDirectory(uploadDir);
-        }
 
         return uploadDir;
     }
 
     /// <summary>
-    /// Güvenlik için dosya başlık baytlarını (magic bytes) kontrol eder.
+    /// Güvenlik: Dosya içeriğini magic bytes ile doğrular. Yalnızca uzantıya güvenmez.
     /// </summary>
     private static bool ValidateImageMagicBytes(Stream stream, string extension)
     {
@@ -64,61 +65,66 @@ public class ScreenshotsController : ControllerBase
 
         if (bytes.Length < 4) return false;
 
-        // PNG: 89 50 4E 47 0D 0A 1A 0A
         if (extension.Equals(".png", StringComparison.OrdinalIgnoreCase))
-        {
             return bytes.Length >= 8 &&
                    bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47 &&
                    bytes[4] == 0x0D && bytes[5] == 0x0A && bytes[6] == 0x1A && bytes[7] == 0x0A;
-        }
 
-        // JPEG: FF D8 FF
         if (extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase) ||
             extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase))
-        {
             return bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF;
-        }
 
-        // WEBP: RIFF....WEBP (52 49 46 46 .... 57 45 42 50)
         if (extension.Equals(".webp", StringComparison.OrdinalIgnoreCase))
-        {
             return bytes.Length >= 12 &&
                    bytes[0] == 0x52 && bytes[1] == 0x49 && bytes[2] == 0x46 && bytes[3] == 0x46 &&
                    bytes[8] == 0x57 && bytes[9] == 0x45 && bytes[10] == 0x42 && bytes[11] == 0x50;
-        }
 
         return false;
     }
 
+    private ProjectScreenshotDto ToDto(ProjectScreenshot s) => new()
+    {
+        Id = s.Id,
+        ProjectId = s.ProjectId,
+        FileName = s.FileName,
+        // FilePath DB''de fiziksel yol olarak saklanmaz; ID-bazlı API route hesaplanır
+        FilePath = $"/api/screenshots/{s.Id}/file",
+        Caption = s.Caption,
+        IsCover = s.IsCover,
+        DisplayOrder = s.DisplayOrder
+    };
+
     [HttpGet("api/projects/{projectId:guid}/screenshots")]
-    public async Task<ActionResult<List<ProjectScreenshotDto>>> GetProjectScreenshots(Guid projectId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<ProjectScreenshotDto>>> GetProjectScreenshots(
+        Guid projectId,
+        CancellationToken cancellationToken = default)
     {
         var screenshots = await _context.ProjectScreenshots
             .Where(s => s.ProjectId == projectId)
             .OrderBy(s => s.DisplayOrder)
-            .Select(s => new ProjectScreenshotDto
-            {
-                Id = s.Id,
-                ProjectId = s.ProjectId,
-                FileName = s.FileName,
-                FilePath = s.FilePath,
-                Caption = s.Caption,
-                IsCover = s.IsCover,
-                DisplayOrder = s.DisplayOrder
-            })
             .ToListAsync(cancellationToken);
 
-        return Ok(screenshots);
+        return Ok(screenshots.Select(ToDto).ToList());
     }
 
+    /// <summary>
+    /// Yetkili kullanıcıya ekran görüntüsü dosyasını stream eder.
+    /// Dosya web root dışında saklandığından doğrudan URL ile erişilemez.
+    /// </summary>
     [HttpGet("api/screenshots/{id:guid}/file")]
-    public async Task<IActionResult> GetScreenshotFile(Guid id, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetScreenshotFile(
+        Guid id,
+        CancellationToken cancellationToken = default)
     {
         var screenshot = await _context.ProjectScreenshots.FindAsync([id], cancellationToken);
         if (screenshot == null) return NotFound();
 
         var filePath = Path.Combine(GetUploadDirectory(), screenshot.FileName);
-        if (!System.IO.File.Exists(filePath)) return NotFound(new { message = "Görsel dosyası sunucuda bulunamadı." });
+        if (!System.IO.File.Exists(filePath))
+        {
+            _logger.LogWarning("Screenshot dosyası sunucuda bulunamadı: {FileName}", screenshot.FileName);
+            return NotFound(new { message = "Görsel dosyası sunucuda bulunamadı." });
+        }
 
         var ext = Path.GetExtension(screenshot.FileName);
         var mimeType = AllowedExtensions.TryGetValue(ext, out var mime) ? mime : "application/octet-stream";
@@ -127,7 +133,7 @@ public class ScreenshotsController : ControllerBase
     }
 
     [HttpPost("api/projects/{projectId:guid}/screenshots")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<ActionResult<ProjectScreenshotDto>> UploadScreenshot(
         Guid projectId,
         [FromForm] IFormFile? file,
@@ -137,41 +143,33 @@ public class ScreenshotsController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         if (file == null || file.Length == 0)
-        {
             return BadRequest(new { message = "Lütfen yüklenecek bir görsel dosyası seçiniz." });
-        }
 
-        // Dosya boyutu sınırı: 5 MB
-        const long maxFileSize = 5 * 1024 * 1024;
-        if (file.Length > maxFileSize)
-        {
-            return BadRequest(new { message = "Görsel boyutu 5 MB sınırını aşamaz." });
-        }
+        var maxFileSizeBytes = _configuration.GetValue<long>("Storage:MaxScreenshotSizeBytes", 5 * 1024 * 1024);
+        if (file.Length > maxFileSizeBytes)
+            return BadRequest(new { message = $"Görsel boyutu {maxFileSizeBytes / (1024 * 1024)} MB sınırını aşamaz." });
 
-        // Dosya uzantısı kontrolü
         var rawExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!AllowedExtensions.ContainsKey(rawExtension))
-        {
             return BadRequest(new { message = "Yalnızca PNG, JPG ve WEBP formatındaki görseller desteklenmektedir." });
-        }
 
-        // Güvenlik: Magic bytes kontrolü (dosya içeriğinin gerçekten geçerli bir resim olduğunu doğrula)
         using (var stream = file.OpenReadStream())
         {
             if (!ValidateImageMagicBytes(stream, rawExtension))
-            {
                 return BadRequest(new { message = "Yüklenen dosya içeriği geçerli bir görsel formatı ile eşleşmiyor." });
-            }
         }
 
         var project = await _context.Projects.FindAsync([projectId], cancellationToken);
         if (project == null)
-        {
             return NotFound(new { message = "Ekran görüntüsü eklenecek proje bulunamadı." });
-        }
+
+        var maxCount = _configuration.GetValue<int>("Storage:MaxScreenshotsPerProject", 20);
+        var currentCount = await _context.ProjectScreenshots.CountAsync(s => s.ProjectId == projectId, cancellationToken);
+        if (currentCount >= maxCount)
+            return BadRequest(new { message = $"Proje başına en fazla {maxCount} ekran görüntüsü yüklenebilir." });
 
         var uploadDir = GetUploadDirectory();
-        // Benzersiz ve güvenli dosya adı üretimi
+        // Dosya adı kullanıcı girdisinden oluşmaz — UUID ile güvenli ad üretilir
         var uniqueFileName = $"{Guid.NewGuid():N}{rawExtension}";
         var physicalPath = Path.Combine(uploadDir, uniqueFileName);
 
@@ -180,7 +178,6 @@ public class ScreenshotsController : ControllerBase
             await file.CopyToAsync(fileStream, cancellationToken);
         }
 
-        // Eğer kapak görseli olarak seçildiyse diğer kapakları kaldır
         if (isCover)
         {
             var existingCovers = await _context.ProjectScreenshots
@@ -188,16 +185,15 @@ public class ScreenshotsController : ControllerBase
                 .ToListAsync(cancellationToken);
 
             foreach (var existing in existingCovers)
-            {
                 existing.IsCover = false;
-            }
         }
 
         var screenshot = new ProjectScreenshot
         {
             ProjectId = projectId,
             FileName = uniqueFileName,
-            FilePath = $"/api/screenshots/{uniqueFileName}", // İstemciye servis edilen göreceli URL
+            // FilePath artık DB''de sunucu yolu olarak saklanmaz; sabit boş string
+            FilePath = string.Empty,
             Caption = caption?.Trim(),
             IsCover = isCover,
             DisplayOrder = displayOrder,
@@ -208,24 +204,14 @@ public class ScreenshotsController : ControllerBase
         project.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Yeni ekran görüntüsü yüklendi. ProjeId: {ProjectId}, Dosya: {FileName}", projectId, uniqueFileName);
+        _logger.LogInformation("Yeni ekran görüntüsü yüklendi. ProjeId: {ProjectId}, Dosya: {FileName}",
+            projectId, uniqueFileName);
 
-        var dto = new ProjectScreenshotDto
-        {
-            Id = screenshot.Id,
-            ProjectId = screenshot.ProjectId,
-            FileName = screenshot.FileName,
-            FilePath = $"/api/screenshots/{screenshot.Id}/file",
-            Caption = screenshot.Caption,
-            IsCover = screenshot.IsCover,
-            DisplayOrder = screenshot.DisplayOrder
-        };
-
-        return CreatedAtAction(nameof(GetScreenshotFile), new { id = screenshot.Id }, dto);
+        return CreatedAtAction(nameof(GetScreenshotFile), new { id = screenshot.Id }, ToDto(screenshot));
     }
 
     [HttpPut("api/screenshots/{id:guid}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Editor")]
     public async Task<ActionResult<ProjectScreenshotDto>> UpdateScreenshot(
         Guid id,
         [FromBody] UpdateScreenshotRequest request,
@@ -241,9 +227,7 @@ public class ScreenshotsController : ControllerBase
                 .ToListAsync(cancellationToken);
 
             foreach (var existing in existingCovers)
-            {
                 existing.IsCover = false;
-            }
         }
 
         screenshot.Caption = request.Caption?.Trim();
@@ -251,23 +235,10 @@ public class ScreenshotsController : ControllerBase
         screenshot.DisplayOrder = request.DisplayOrder;
 
         var project = await _context.Projects.FindAsync([screenshot.ProjectId], cancellationToken);
-        if (project != null)
-        {
-            project.UpdatedAt = DateTime.UtcNow;
-        }
+        if (project != null) project.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
-
-        return Ok(new ProjectScreenshotDto
-        {
-            Id = screenshot.Id,
-            ProjectId = screenshot.ProjectId,
-            FileName = screenshot.FileName,
-            FilePath = $"/api/screenshots/{screenshot.Id}/file",
-            Caption = screenshot.Caption,
-            IsCover = screenshot.IsCover,
-            DisplayOrder = screenshot.DisplayOrder
-        });
+        return Ok(ToDto(screenshot));
     }
 
     [HttpDelete("api/screenshots/{id:guid}")]
@@ -277,29 +248,27 @@ public class ScreenshotsController : ControllerBase
         var screenshot = await _context.ProjectScreenshots.FindAsync([id], cancellationToken);
         if (screenshot == null) return NotFound(new { message = "Silinecek ekran görüntüsü bulunamadı." });
 
-        // Fiziksel dosyayı güvenle sil
-        try
-        {
-            var filePath = Path.Combine(GetUploadDirectory(), screenshot.FileName);
-            if (System.IO.File.Exists(filePath))
-            {
-                System.IO.File.Delete(filePath);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Ekran görüntüsü dosyası silinirken uyarı alındı: {FileName}", screenshot.FileName);
-        }
-
+        // Önce DB kaydını kaldır; dosya silme başarısız olsa bile veri tutarlılığı korunur
+        var fileName = screenshot.FileName;
         _context.ProjectScreenshots.Remove(screenshot);
 
         var project = await _context.Projects.FindAsync([screenshot.ProjectId], cancellationToken);
-        if (project != null)
-        {
-            project.UpdatedAt = DateTime.UtcNow;
-        }
+        if (project != null) project.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // DB commit başarılı — fiziksel dosyayı temizle (hata loglama ile)
+        try
+        {
+            var filePath = Path.Combine(GetUploadDirectory(), fileName);
+            if (System.IO.File.Exists(filePath))
+                System.IO.File.Delete(filePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Ekran görüntüsü DB''den silindi ancak fiziksel dosya temizlenemedi: {FileName}", fileName);
+        }
 
         return Ok(new { message = "Ekran görüntüsü başarıyla silindi." });
     }
