@@ -192,10 +192,10 @@ using (var scope = app.Services.CreateScope())
                 END
 
                 IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'AspNetRoles')
-                   AND NOT EXISTS (SELECT 1 FROM [__EFMigrationsHistory] WHERE [MigrationId] = '20240101000000_InitialCreate')
+                   AND NOT EXISTS (SELECT 1 FROM [__EFMigrationsHistory] WHERE [MigrationId] = '20260902075254_InitialCreate')
                 BEGIN
                     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-                    VALUES ('20240101000000_InitialCreate', '8.0.0');
+                    VALUES ('20260902075254_InitialCreate', '8.0.0');
                 END
 
                 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE name = N'IsCover' AND object_id = OBJECT_ID(N'ProjectScreenshots'))
