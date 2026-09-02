@@ -179,6 +179,31 @@ using (var scope = app.Services.CreateScope())
         if (db.Database.IsRelational())
         {
             logger.LogInformation("Veritabanı migration'ları kontrol ediliyor ve uygulanıyor...");
+            
+            // Eğer veritabanı önceden EnsureCreated ile açılmışsa, InitialCreate'i geçmişe ekle ve şemayı uyarla
+            await db.Database.ExecuteSqlRawAsync(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = '__EFMigrationsHistory')
+                BEGIN
+                    CREATE TABLE [__EFMigrationsHistory] (
+                        [MigrationId] nvarchar(150) NOT NULL,
+                        [ProductVersion] nvarchar(32) NOT NULL,
+                        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
+                    );
+                END
+
+                IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'AspNetRoles')
+                   AND NOT EXISTS (SELECT 1 FROM [__EFMigrationsHistory] WHERE [MigrationId] = '20240101000000_InitialCreate')
+                BEGIN
+                    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+                    VALUES ('20240101000000_InitialCreate', '8.0.0');
+                END
+
+                IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE name = N'IsCover' AND object_id = OBJECT_ID(N'ProjectScreenshots'))
+                BEGIN
+                    ALTER TABLE ProjectScreenshots ADD IsCover bit NOT NULL CONSTRAINT DF_ProjectScreenshots_IsCover DEFAULT 0;
+                END
+            ");
+
             await db.Database.MigrateAsync();
             logger.LogInformation("Veritabanı migration'ları başarıyla uygulandı.");
         }

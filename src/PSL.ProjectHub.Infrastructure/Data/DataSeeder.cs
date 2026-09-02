@@ -92,11 +92,43 @@ public class DataSeeder
                     await _userManager.ResetAccessFailedCountAsync(adminUser);
                     _logger.LogInformation("Geliştirme ortamında kilitlenmiş Admin hesabı kilidi başarıyla kaldırıldı.");
                 }
+
+                // Geliştirme ortamında admin şifresini bilinen geliştirme şifresi ile senkronize et
+                var token = await _userManager.GeneratePasswordResetTokenAsync(adminUser);
+                await _userManager.ResetPasswordAsync(adminUser, token, adminPassword);
             }
         }
         else
         {
             _logger.LogInformation("InitialAdmin parolası yapılandırılmamış. İlk admin hesabı CLI veya ortam değişkeni ile oluşturulabilir.");
+        }
+
+        if (isDevelopment)
+        {
+            var viewerUser = await _userManager.FindByNameAsync("viewer");
+            if (viewerUser == null)
+            {
+                viewerUser = new ApplicationUser
+                {
+                    UserName = "viewer",
+                    Email = "viewer@gallerycrystal.com.tr",
+                    FullName = "Gözlemci Kullanıcı",
+                    Department = "Operasyon",
+                    EmailConfirmed = true
+                };
+                await _userManager.CreateAsync(viewerUser, "Viewer123!*");
+                await _userManager.AddToRoleAsync(viewerUser, "Viewer");
+            }
+            else
+            {
+                if (await _userManager.IsLockedOutAsync(viewerUser))
+                {
+                    await _userManager.SetLockoutEndDateAsync(viewerUser, null);
+                    await _userManager.ResetAccessFailedCountAsync(viewerUser);
+                }
+                var vToken = await _userManager.GeneratePasswordResetTokenAsync(viewerUser);
+                await _userManager.ResetPasswordAsync(viewerUser, vToken, "Viewer123!*");
+            }
         }
     }
 
