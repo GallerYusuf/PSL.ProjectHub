@@ -21,6 +21,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
     public DbSet<ProjectIntegration> ProjectIntegrations => Set<ProjectIntegration>();
     public DbSet<ProjectRelease> ProjectReleases => Set<ProjectRelease>();
     public DbSet<ProjectNote> ProjectNotes => Set<ProjectNote>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -143,6 +144,20 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
             b.Property(s => s.Caption).HasMaxLength(300);
             b.Property(s => s.IsCover).HasDefaultValue(false);
             b.HasQueryFilter(s => !s.Project.IsArchived);
+        });
+
+        // AuditLog yapılandırması
+        builder.Entity<AuditLog>(b =>
+        {
+            b.HasKey(a => a.Id);
+            b.Property(a => a.EntityName).HasMaxLength(100).IsRequired();
+            b.Property(a => a.EntityId).HasMaxLength(100).IsRequired();
+            b.Property(a => a.Action).HasMaxLength(50).IsRequired();
+            b.Property(a => a.Username).HasMaxLength(150);
+            b.Property(a => a.UserId).HasMaxLength(150);
+            b.Property(a => a.Details).HasMaxLength(4000);
+            b.HasIndex(a => new { a.EntityName, a.EntityId });
+            b.HasIndex(a => a.Timestamp);
         });
     }
 }

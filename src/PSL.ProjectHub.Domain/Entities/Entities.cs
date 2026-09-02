@@ -136,3 +136,31 @@ public class ProjectNote
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 }
+
+/// <summary>
+/// Proje ve sistem üzerinde yapılan tüm kritik değişikliklerin (oluşturma, güncelleme,
+/// arşivleme, geri yükleme, doğrulama) denetim kaydını tutan varlık.
+/// </summary>
+public class AuditLog
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    
+    // Değişikliğin yapıldığı varlık türü (Örn: Project, ProjectLink, Component)
+    public string EntityName { get; set; } = string.Empty;
+    
+    // İlgili varlığın birincil anahtarı (Id)
+    public string EntityId { get; set; } = string.Empty;
+    
+    // Gerçekleştirilen işlem türü (Create, Update, Archive, Restore, Verify)
+    public string Action { get; set; } = string.Empty;
+    
+    // İşlemi yapan kullanıcının kimlik bilgileri
+    public string? UserId { get; set; }
+    public string? Username { get; set; }
+    
+    // Değişikliğe ait özet veya yapılandırılmış JSON detayları
+    public string? Details { get; set; }
+    
+    // İşlemin gerçekleştiği UTC zaman damgası
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+}

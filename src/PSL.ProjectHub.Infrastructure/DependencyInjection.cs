@@ -45,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<IUrlImportService, UrlImportService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAuditLogService, AuditLogService>();
 
         // Extensibility Providers (Mock for MVP)
         services.AddScoped<IRepositoryMetadataProvider, MockRepositoryMetadataProvider>();

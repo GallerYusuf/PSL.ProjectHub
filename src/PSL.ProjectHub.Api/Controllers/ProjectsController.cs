@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PSL.ProjectHub.Application.DTOs;
 using PSL.ProjectHub.Application.Interfaces;
@@ -12,10 +12,27 @@ namespace PSL.ProjectHub.Api.Controllers;
 public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _projectService;
+    private readonly IAuditLogService _auditLogService;
 
-    public ProjectsController(IProjectService projectService)
+    public ProjectsController(IProjectService projectService, IAuditLogService auditLogService)
     {
         _projectService = projectService;
+        _auditLogService = auditLogService;
+    }
+
+    /// <summary>
+    /// Projeye ait denetim izi (işlem geçmişi) kayıtlarını döndürür.
+    /// Yalnızca Sistem Yöneticisi (Admin) erişebilir.
+    /// </summary>
+    [HttpGet("{id:guid}/audit")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<List<AuditLogDto>>> GetProjectAuditLogs(
+        Guid id,
+        [FromQuery] int take = 50,
+        CancellationToken cancellationToken = default)
+    {
+        var logs = await _auditLogService.GetLogsAsync("Project", id.ToString(), take, cancellationToken);
+        return Ok(logs);
     }
 
     [HttpGet]
@@ -66,6 +83,15 @@ public class ProjectsController : ControllerBase
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
         var created = await _projectService.CreateProjectAsync(request, cancellationToken);
+
+        // Denetim kaydı oluştur
+        await _auditLogService.LogAsync(
+            "Project", created.Id.ToString(), "Create",
+            User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
+            User.Identity?.Name,
+            $"Proje oluşturuldu: '{created.Name}' (Slug: {created.Slug})",
+            cancellationToken);
+
         return CreatedAtAction(nameof(GetProject), new { identifier = created.Slug }, created);
     }
 
@@ -80,6 +106,15 @@ public class ProjectsController : ControllerBase
         var updated = await _projectService.UpdateProjectAsync(id, request, cancellationToken);
         if (updated == null)
             return NotFound(new { message = "Güncellenecek proje bulunamadı." });
+
+        // Denetim kaydı oluştur
+        await _auditLogService.LogAsync(
+            "Project", id.ToString(), "Update",
+            User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
+            User.Identity?.Name,
+            $"Proje bilgileri güncellendi: '{updated.Name}'",
+            cancellationToken);
+
         return Ok(updated);
     }
 
@@ -89,6 +124,15 @@ public class ProjectsController : ControllerBase
     {
         var success = await _projectService.ArchiveProjectAsync(id, cancellationToken);
         if (!success) return NotFound(new { message = "Arşivlenecek proje bulunamadı." });
+
+        // Denetim kaydı oluştur
+        await _auditLogService.LogAsync(
+            "Project", id.ToString(), "Archive",
+            User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
+            User.Identity?.Name,
+            "Proje arşive taşındı.",
+            cancellationToken);
+
         return Ok(new { message = "Proje başarıyla arşivlendi." });
     }
 
@@ -98,6 +142,15 @@ public class ProjectsController : ControllerBase
     {
         var success = await _projectService.RestoreProjectAsync(id, cancellationToken);
         if (!success) return NotFound(new { message = "Geri yüklenecek arşiv projesi bulunamadı." });
+
+        // Denetim kaydı oluştur
+        await _auditLogService.LogAsync(
+            "Project", id.ToString(), "Restore",
+            User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
+            User.Identity?.Name,
+            "Proje arşivden geri yüklendi.",
+            cancellationToken);
+
         return Ok(new { message = "Proje arşivden başarıyla geri yüklendi." });
     }
 
@@ -110,6 +163,15 @@ public class ProjectsController : ControllerBase
     {
         var success = await _projectService.SetVerifiedStatusAsync(id, isVerified, cancellationToken);
         if (!success) return NotFound(new { message = "Proje bulunamadı." });
+
+        // Denetim kaydı oluştur
+        await _auditLogService.LogAsync(
+            "Project", id.ToString(), isVerified ? "Verify" : "Unverify",
+            User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value,
+            User.Identity?.Name,
+            isVerified ? "Proje doğrulanmış olarak işaretlendi." : "Proje doğrulama bekliyor durumuna alındı.",
+            cancellationToken);
+
         return Ok(new { message = isVerified ? "Proje doğrulandı." : "Doğrulama kaldırıldı." });
     }
 
