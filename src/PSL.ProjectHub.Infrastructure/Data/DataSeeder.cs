@@ -83,6 +83,16 @@ public class DataSeeder
                     _logger.LogWarning("Admin kullanıcısı oluşturulurken hata: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
                 }
             }
+            else if (isDevelopment)
+            {
+                // Geliştirme ortamında testler sırasında hesap kilitlenmişse kilidi kaldır
+                if (await _userManager.IsLockedOutAsync(adminUser))
+                {
+                    await _userManager.SetLockoutEndDateAsync(adminUser, null);
+                    await _userManager.ResetAccessFailedCountAsync(adminUser);
+                    _logger.LogInformation("Geliştirme ortamında kilitlenmiş Admin hesabı kilidi başarıyla kaldırıldı.");
+                }
+            }
         }
         else
         {

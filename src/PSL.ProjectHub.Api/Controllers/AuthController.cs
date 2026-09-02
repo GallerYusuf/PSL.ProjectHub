@@ -30,13 +30,20 @@ public class AuthController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var response = await _authService.LoginAsync(request);
-        if (response == null)
+        try
         {
-            return Unauthorized(new { message = "Geçersiz kullanıcı adı veya şifre." });
-        }
+            var response = await _authService.LoginAsync(request);
+            if (response == null)
+            {
+                return Unauthorized(new { message = "Geçersiz kullanıcı adı veya şifre." });
+            }
 
-        return Ok(response);
+            return Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return StatusCode(423, new { message = ex.Message });
+        }
     }
 
     [HttpGet("me")]
