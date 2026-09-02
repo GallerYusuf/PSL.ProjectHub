@@ -1,0 +1,115 @@
+[
+  {
+    "projectKey": "musteri-platformu",
+    "links": [
+      {
+        "label": "Müşteri Kayıt Portalı",
+        "url": "https://customer.example.internal",
+        "linkType": "Production",
+        "environment": "Production",
+        "isPrimary": true,
+        "requiresVpn": true,
+        "requiresAuthentication": true,
+        "openInNewTab": true,
+        "displayOrder": 1
+      },
+      {
+        "label": "Customer API Swagger",
+        "url": "https://customer-api.example.internal/swagger",
+        "linkType": "Swagger",
+        "environment": "Production",
+        "isPrimary": false,
+        "requiresVpn": true,
+        "requiresAuthentication": false,
+        "openInNewTab": true,
+        "displayOrder": 2
+      }
+    ]
+  },
+  {
+    "projectKey": "personel-platformu",
+    "links": [
+      {
+        "label": "Personel Portalı",
+        "url": "https://employee.example.internal",
+        "linkType": "Production",
+        "environment": "Production",
+        "isPrimary": true,
+        "requiresVpn": true,
+        "requiresAuthentication": true,
+        "openInNewTab": true,
+        "displayOrder": 1
+      },
+      {
+        "label": "Personel Test Ortamı",
+        "url": "https://employee-test.example.internal",
+        "linkType": "Test",
+        "environment": "Test",
+        "isPrimary": false,
+        "requiresVpn": true,
+        "requiresAuthentication": true,
+        "openInNewTab": true,
+        "displayOrder": 2
+      }
+    ]
+  },
+  {
+    "projectKey": "e-fatura-otomasyonu",
+    "links": [
+      {
+        "label": "E-Fatura Web Paneli",
+        "url": "https://efatura.example.internal",
+        "linkType": "Production",
+        "environment": "Production",
+        "isPrimary": true,
+        "requiresVpn": true,
+        "requiresAuthentication": true,
+        "openInNewTab": true,
+        "displayOrder": 1
+      },
+      {
+        "label": "API Swagger Arayüzü",
+        "url": "https://efatura.example.internal/swagger",
+        "linkType": "Swagger",
+        "environment": "Production",
+        "isPrimary": false,
+        "requiresVpn": true,
+        "requiresAuthentication": false,
+        "openInNewTab": true,
+        "displayOrder": 2
+      }
+    ]
+  },
+  {
+    "projectKey": "emilio-stok-sistemi",
+    "links": [
+      {
+        "label": "Emilio Stok Ekranı",
+        "url": "https://emilio-inventory.example.internal",
+        "linkType": "Production",
+        "environment": "Production",
+        "isPrimary": true,
+        "requiresVpn": true,
+        "requiresAuthentication": true,
+        "openInNewTab": true,
+        "displayOrder": 1
+      }
+    ]
+  },
+  {
+    "projectKey": "lokasyon-tasima-projesi",
+    "links": [
+      {
+        "label": "Relocation Map Uygulaması",
+        "url": "https://relocation.example.internal",
+        "linkType": "Production",
+        "environment": "Production",
+        "isPrimary": true,
+        "requiresVpn": false,
+        "requiresAuthentication": true,
+        "openInNewTab": true,
+        "displayOrder": 1
+      }
+    ]
+  }
+]
