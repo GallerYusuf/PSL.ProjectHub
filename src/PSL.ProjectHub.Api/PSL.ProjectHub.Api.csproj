@@ -23,40 +23,35 @@
   </PropertyGroup>
 
   <!--
-    Frontend Build Pipeline (BeforePublish):
-    dotnet publish çalıştırıldığında, önce React frontend build alınır ve
-    dist/ içeriği wwwroot/ altına kopyalanır. Eski hash'li dosyalar temizlenir.
-    Not: Bu target Node.js'in publish yapan makinede yüklü olmasını gerektirir.
+    Frontend Derleme ve Dağıtım Hattı (Build & Publish Pipeline):
+    Release modunda veya dotnet publish çalıştırıldığında React ön yüzü otomatik derlenir
+    ve wwwroot çıktı hedefine hatasız olarak dahil edilir.
   -->
-  <Target Name="BuildFrontend" BeforeTargets="BeforePublish">
-    <Message Text="[PSL Project Hub] Frontend build başlatılıyor..." Importance="high" />
+  <Target Name="BuildFrontendOnPublish" BeforeTargets="BeforePublish">
+    <Message Text="[PSL Project Hub] Ön yüz (Vite) derleme süreci başlatılıyor..." Importance="high" />
+    <Exec Command="npm run build" WorkingDirectory="$(FrontendProjectDir)" ConsoleToMSBuild="true" />
 
-    <!-- Eski wwwroot içeriğini temizle (sadece assets klasörü) -->
-    <RemoveDir Directories="$(MSBuildThisFileDirectory)wwwroot\assets" />
-
-    <!-- npm ci: temiz, kilit dosyasına dayalı kurulum -->
-    <Exec
-      Command="npm ci"
-      WorkingDirectory="$(FrontendProjectDir)"
-      ConsoleToMSBuild="true" />
-
-    <!-- Vite build -->
-    <Exec
-      Command="npm run build"
-      WorkingDirectory="$(FrontendProjectDir)"
-      ConsoleToMSBuild="true" />
-
-    <!-- dist/ → wwwroot/ kopyala -->
+    <!-- Ön yüz dist/ içeriğini wwwroot/ içerisine aktar -->
     <ItemGroup>
-      <FrontendDistFiles Include="$(FrontendProjectDir)\dist\**\*" />
+      <DistFiles Include="$(FrontendProjectDir)\dist\**\*" />
     </ItemGroup>
 
     <Copy
-      SourceFiles="@(FrontendDistFiles)"
-      DestinationFiles="@(FrontendDistFiles->'$(MSBuildThisFileDirectory)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')"
-      SkipUnchangedFiles="false" />
+      SourceFiles="@(DistFiles)"
+      DestinationFiles="@(DistFiles->'$(MSBuildThisFileDirectory)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="true" />
+    <Message Text="[PSL Project Hub] Ön yüz başarıyla derlendi ve wwwroot'a aktarıldı." Importance="high" />
+  </Target>
 
-    <Message Text="[PSL Project Hub] Frontend build tamamlandı ve wwwroot'a kopyalandı." Importance="high" />
+  <Target Name="IncludeFrontendInPublishOutput" AfterTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <_WebFiles Include="$(FrontendProjectDir)\dist\**\*" />
+      <ResolvedFileToPublish Include="@(_WebFiles)">
+        <RelativePath>wwwroot\%(RecursiveDir)%(Filename)%(Extension)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
   </Target>
 
 </Project>
