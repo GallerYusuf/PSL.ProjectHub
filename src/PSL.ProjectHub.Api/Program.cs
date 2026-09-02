@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -131,6 +131,10 @@ var app = builder.Build();
 
 // Global hata yönetim middleware
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+
+// Güvenlik header''ları (CSP, X-Frame-Options, vb.)
+// ADR-001: JWT + localStorage + strict CSP XSS azaltma kombinasyonu
+app.UseMiddleware<SecurityHeadersMiddleware>();
 
 // HTTPS Redirection ve HSTS (production)
 if (!app.Environment.IsDevelopment())

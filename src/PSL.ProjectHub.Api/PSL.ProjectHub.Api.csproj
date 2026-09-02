@@ -18,6 +18,45 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Frontend kaynak dizini (API projesine göreli) -->
+    <FrontendProjectDir>$(MSBuildThisFileDirectory)..\..\src\PSL.ProjectHub.Web</FrontendProjectDir>
   </PropertyGroup>
+
+  <!--
+    Frontend Build Pipeline (BeforePublish):
+    dotnet publish çalıştırıldığında, önce React frontend build alınır ve
+    dist/ içeriği wwwroot/ altına kopyalanır. Eski hash'li dosyalar temizlenir.
+    Not: Bu target Node.js'in publish yapan makinede yüklü olmasını gerektirir.
+  -->
+  <Target Name="BuildFrontend" BeforeTargets="BeforePublish">
+    <Message Text="[PSL Project Hub] Frontend build başlatılıyor..." Importance="high" />
+
+    <!-- Eski wwwroot içeriğini temizle (sadece assets klasörü) -->
+    <RemoveDir Directories="$(MSBuildThisFileDirectory)wwwroot\assets" />
+
+    <!-- npm ci: temiz, kilit dosyasına dayalı kurulum -->
+    <Exec
+      Command="npm ci"
+      WorkingDirectory="$(FrontendProjectDir)"
+      ConsoleToMSBuild="true" />
+
+    <!-- Vite build -->
+    <Exec
+      Command="npm run build"
+      WorkingDirectory="$(FrontendProjectDir)"
+      ConsoleToMSBuild="true" />
+
+    <!-- dist/ → wwwroot/ kopyala -->
+    <ItemGroup>
+      <FrontendDistFiles Include="$(FrontendProjectDir)\dist\**\*" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(FrontendDistFiles)"
+      DestinationFiles="@(FrontendDistFiles->'$(MSBuildThisFileDirectory)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')"
+      SkipUnchangedFiles="false" />
+
+    <Message Text="[PSL Project Hub] Frontend build tamamlandı ve wwwroot'a kopyalandı." Importance="high" />
+  </Target>
 
 </Project>
