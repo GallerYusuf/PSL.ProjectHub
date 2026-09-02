@@ -6,6 +6,7 @@ import { ProjectsPage } from './pages/ProjectsPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { AdminPage } from './pages/AdminPage';
 import { LoginPage } from './pages/LoginPage';
+import SetupPage from './pages/SetupPage';
 import { PresentationModal } from './components/PresentationModal';
 import { AdminProjectModal } from './components/AdminProjectModal';
 import { ProjectSummaryDto, ProjectDetailDto } from './types';
@@ -18,6 +19,14 @@ export const AppContent: React.FC = () => {
   const { user, isAdmin, isAuthenticated, loading, logout } = useAuth();
   const [currentTab, setCurrentTab] = useState<Tab>('dashboard');
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+  const [needsSetup, setNeedsSetup] = useState<boolean | null>(null);
+
+  // İlk kurulum kontrolü
+  useEffect(() => {
+    api.getSetupStatus()
+      .then(status => setNeedsSetup(!status.isInitialized))
+      .catch(() => setNeedsSetup(false)); // Hata durumunda normal akışa geç
+  }, []);
 
   // Global Sunum Modu ve Yeni Proje Modalı
   const [presentationProject, setPresentationProject] = useState<ProjectDetailDto | null>(null);
@@ -104,7 +113,7 @@ export const AppContent: React.FC = () => {
   };
 
   // Oturum ilk yüklenirken gösterilecek kurumsal bekleme ekranı
-  if (loading) {
+  if (loading || needsSetup === null) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-app)' }}>
         <div style={{ textAlign: 'center' }}>
@@ -114,6 +123,11 @@ export const AppContent: React.FC = () => {
         </div>
       </div>
     );
+  }
+
+  // Sistem ilk kez kuruluyorsa setup sayfasını göster
+  if (needsSetup) {
+    return <SetupPage onComplete={() => setNeedsSetup(false)} />;
   }
 
   // Giriş Yapılmamışsa Login Sayfasını Göster

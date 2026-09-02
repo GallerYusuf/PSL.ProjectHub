@@ -61,12 +61,26 @@ export const api = {
     });
   },
 
-  async getMe(): Promise<any> {
+  async getMe(): Promise<{ username: string; fullName: string; email: string; roles: string[] }> {
     return request('/auth/me');
   },
 
-  async seedDefaultData(): Promise<{ message: string }> {
-    return request('/auth/seed', { method: 'POST' });
+  // Setup (ilk kurulum)
+  async getSetupStatus(): Promise<{ isInitialized: boolean; message: string }> {
+    return request('/setup/status');
+  },
+
+  async initializeSystem(data: {
+    organizationName: string;
+    adminUsername: string;
+    adminEmail: string;
+    adminPassword: string;
+    adminFullName: string;
+  }): Promise<{ message: string }> {
+    return request('/setup/initialize', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
   },
 
   // Dashboard

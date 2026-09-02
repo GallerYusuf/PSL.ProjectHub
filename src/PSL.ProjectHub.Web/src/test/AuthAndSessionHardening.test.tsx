@@ -124,6 +124,7 @@ describe('Kimlik Doğrulama ve Oturum Sertleştirme Testleri', () => {
     const validUser = {
       username: 'admin',
       fullName: 'Sistem Yöneticisi',
+      email: 'admin@test.com',
       roles: ['Admin'],
       token: validToken
     };
