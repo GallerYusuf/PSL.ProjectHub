@@ -3,6 +3,7 @@ import {
   ProjectSummaryDto,
   ProjectDetailDto,
   ProjectLinkDto,
+  ProjectScreenshotDto,
   ProjectStatus,
   AuthUser
 } from '../types';
@@ -27,6 +28,12 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('psl_token');
+      localStorage.removeItem('psl_user');
+      window.dispatchEvent(new CustomEvent('psl:unauthorized'));
+    }
+
     let errorMessage = `HTTP Hata: ${response.status}`;
     try {
       const errorData = await response.json();
@@ -179,6 +186,40 @@ export const api = {
     });
   },
 
+  // Screenshots
+  async uploadScreenshot(projectId: string, formData: FormData): Promise<ProjectScreenshotDto> {
+    const token = localStorage.getItem('psl_token');
+    const response = await fetch(`${API_BASE}/projects/${projectId}/screenshots`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+
+    if (!response.ok) {
+      let errorMessage = `Yükleme hatası: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch {
+        // fallback
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
+
+  async updateScreenshot(id: string, data: { caption?: string; isCover: boolean; displayOrder: number }): Promise<ProjectScreenshotDto> {
+    return request<ProjectScreenshotDto>(`/screenshots/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async deleteScreenshot(id: string): Promise<void> {
+    await request(`/screenshots/${id}`, { method: 'DELETE' });
+  },
+
   // Import
   async importUrls(payload: any[]): Promise<any> {
     return request('/url-import', {
@@ -191,4 +232,27 @@ export const api = {
     const q = fileName ? `?fileName=${encodeURIComponent(fileName)}` : '';
     return request(`/url-import/file${q}`, { method: 'POST' });
   },
+
+  async uploadUrlImportFile(formData: FormData): Promise<any> {
+    const token = localStorage.getItem('psl_token');
+    const response = await fetch(`${API_BASE}/url-import/upload`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+
+    if (!response.ok) {
+      let errorMessage = `İçe aktarma hatası: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.detail || errorData.message || errorMessage;
+      } catch {
+        // fallback
+      }
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  },
 };
+

@@ -1,22 +1,29 @@
 # PSL Project Hub
 
-**PSL İç ve Dış Ticaret A.Ş. / Gallery Crystal** bünyesinde kullanılan ve geliştirilen tüm şirket içi yazılım projelerini, canlı ve test adreslerini, API uç noktalarını, teknik bileşenlerini ve geliştirme notlarını tek bir yaşayan merkezde toplayan kurumsal web uygulaması.
+**PSL İç ve Dış Ticaret A.Ş. / Gallery Crystal** bünyesinde kullanılan ve geliştirilen tüm şirket içi yazılım projelerini, canlı ve test adreslerini, API uç noktalarını, teknik bileşenlerini, ekran görüntülerini ve mimari kararlarını tek bir yaşayan operasyon merkezinde toplayan kurumsal web uygulaması.
 
 ---
 
 ## 🚀 Temel Özellikler
 
-- **Kurumsal Dashboard:** Toplam, canlı, pilot, geliştirilen, bakımdaki ve doğrulama bekleyen proje KPI sayaçları, hızlı erişim bağlantıları ve son güncellemeler.
-- **Canlı URL ve Hızlı Erişim:** Proje kartlarındaki "Uygulamayı Aç" düğmesi ile doğrudan mevcut canlı sistemlere geçiş.
-- **İç Ağ & VPN Koruma Göstergesi:** Şirket içi ağ veya VPN gerektiren adreslerde kullanıcıyı uyaran dinamik rozetler.
-- **İki Aşamalı Detay Görünümü:**
-  - **Yönetici Özeti:** Çözülen iş problemi, getirilen çözüm, şirkete sağlanan değer, hedef kullanıcılar ve zaman çizelgesi.
-  - **Teknik Detaylar:** API, Worker, Gateway vb. teknik bileşenler, kullanılan teknolojiler, ERP/WMS/SMS entegrasyonları, sürüm geçmişi ve mimari kararlar.
-- **Tam Ekran Sunum Modu:** Yönetim kurulu veya iş birimleri için temiz, sade ve etkileyici sunum ekranı.
-- **Gelişmiş Filtreleme & Arama:** Kart ve liste görünümü, durum, kategori, sorumlu ve canlı URL filtreleri.
-- **Güvenli URL Yönetimi:** Yalnızca `http://` ve `https://` protokolleri kabul edilir; `javascript:`, `data:`, `file:` vb. saldırı vektörleri engellenir; `rel="noopener noreferrer"` kullanılır; SSRF riski önlenmiştir.
-- **Toplu URL İçe Aktarma:** `project-urls.json` dosyasından veya JSON metninden tekrarlanabilir (idempotent) içe aktarma; mükerrer link oluşturulmaz.
-- **Rol Tabanlı Erişim:** ASP.NET Core Identity altyapısı ile `Admin` (tam yönetim ve ekleme) ve `Viewer` (salt-okunur izleme ve bağlantı açma).
+- **Kurumsal Operasyon Merkezi Tasarımı:** Yüksek bilgi yoğunluğu, teknik editoryal estetik, tek satır metrik şeridi (Toplam, Canlı, Pilot, Geliştirme, Bakım, Doğrulama Bekleyen), net çizgiler ve WCAG kontrast uyumu.
+- **Portföy İndeksi & Kompakt Kartlar:** Projeleri tam envanter tablosunda veya kart görünümünde listeleyebilme; durum, kategori ve canlı URL filtreleri; URL query parametreleriyle filtre senkronizasyonu.
+- **Teknik Proje Dosyası (Dossier):**
+  - **Yönetici Özeti:** Çözülen iş problemi, getirilen çözüm, şirkete sağlanan değer, sorumlu ve zaman çizelgesi.
+  - **URL Envanteri:** Projenin tüm URL’leri (Canlı, Test, Admin, Swagger, Repository) ortam, ağ erişim türü (Genel, VPN, Kimlik Doğrulama) ve doğrulama durumuyla birlikte net bir tablo şeklinde.
+  - **Ekran Görüntüleri Galerisi:** Çoklu ekran görüntüsü yükleme, kapak görseli seçebilme, sıralama ve tam ekran lightbox modalı.
+- **Tam Ekran Sunum Modu (Executive Presentation Deck):** Klavye yön tuşlarıyla (Sağ/Sol) projeler arasında geçiş imkânı veren, yönetici ve paydaş sunumlarına özel minimalist slayt ekranı.
+- **Güçlendirilmiş Kimlik Doğrulama & Yetkilendirme:**
+  - JWT tabanlı kimlik doğrulama, token süre dolumu (expiration) kontrolü, sunucu doğrulamalı `/api/auth/me`.
+  - Yetkisiz erişimler için 401 vs 403 Forbidden ayrımı.
+  - Brute-force saldırılarına karşı login rate limiting ve 5 hatalı denemede 15 dakika hesap kilitleme (lockout) koruması.
+  - Tüm dahili uç noktalarda zorunlu yetkilendirme (`[Authorize]`) ve veri değişiminde `Admin` rolü kısıtlaması.
+- **Güvenli Dosya ve URL Yönetimi:**
+  - Çok parçalı güvenli dosya yükleme (`IFormFile`), PNG/JPG/WEBP için magic bytes başlık doğrulaması.
+  - URL import uç noktasında Dizin Değiştirme (Path Traversal - `../`) koruması.
+  - Veritabanı seviyesinde `(ProjectId, Url)` mükerrerlik engeli ve 409 Conflict yönetimi.
+  - Güvenli URL protokol doğrulaması (`http://` ve `https://`), `rel="noopener noreferrer"`.
+  - Pasif bağlantıların normal kullanıcılardan filtrelenmesi.
 - **Tek Paket IIS Yayını:** ASP.NET Core 8 Web API ve React SPA tek bir Application Pool altında Windows Server IIS'e dağıtılmaya hazır.
 
 ---
@@ -28,13 +35,13 @@
 | **Backend API** | ASP.NET Core 8 Web API, C# |
 | **Frontend** | React 18, TypeScript, Vite |
 | **Veritabanı** | Microsoft SQL Server (`PSLProjectHub`) |
-| **ORM** | Entity Framework Core 8 |
+| **ORM** | Entity Framework Core 8 (Code-First & Migration tabanlı) |
 | **Kimlik Doğrulama** | ASP.NET Core Identity & JWT Bearer |
-| **Stil & Tasarım** | Vanilla CSS Design System (Design Tokens, Glassmorphism, Dark Slate) |
+| **Tasarım Sistemi** | Kurumsal Teknik Operasyon Merkezi CSS (Design Tokens, Petrol Mavisi `#0f4c81`) |
 | **İkonlar** | Lucide React |
 | **API Dokümantasyonu** | Swagger / OpenAPI |
-| **Backend Testleri** | xUnit (.NET 8) |
-| **Frontend Testleri** | Vitest & React Testing Library |
+| **Backend Testleri** | xUnit (.NET 8) — 40 Test |
+| **Frontend Testleri** | Vitest & React Testing Library — 15 Test |
 | **Yayın Hedefi** | Windows Server & IIS (AspNetCoreModuleV2) |
 
 ---
@@ -52,18 +59,15 @@ c:\Users\yusufemredeniz\Desktop\PSL.ProjectHub\
 │   ├── security.md                # Güvenlik, URL doğrulama ve yetkilendirme
 │   ├── url-management.md          # Bağlantı türleri, birincil URL ve import mantığı
 │   ├── iis-deployment.md          # Windows Server IIS kurulum ve yayın adımları
-│   ├── project-analysis.md        # Masaüstündeki şirket projelerinin analizi
-│   ├── assumptions.md             # Alınan makul varsayımlar
-│   └── future-integrations.md     # Genişletilebilirlik ve mock provider arayüzleri
+│   └── project-analysis.md        # Şirket projelerinin operasyonel analizi
 ├── src/
 │   ├── PSL.ProjectHub.Domain/         # Varlıklar, Enums, Temel Modeller
-│   ├── PSL.ProjectHub.Application/    # DTO'lar, Arayüzler, UrlValidator
+│   ├── PSL.ProjectHub.Application/    # DTO'lar, Arayüzler, Validatörler
 │   ├── PSL.ProjectHub.Infrastructure/ # EF Core AppDbContext, Identity, Seeder, Importer
 │   ├── PSL.ProjectHub.Api/            # REST API Controller'lar, JWT, web.config, Program.cs
 │   └── PSL.ProjectHub.Web/            # React SPA, Vite, TypeScript, Tasarım Sistemi
 └── tests/
-    ├── PSL.ProjectHub.Api.Tests/      # xUnit backend testleri (31/31 Başarılı)
-    └── PSL.ProjectHub.Web.Tests/      # Vitest frontend testleri
+    └── PSL.ProjectHub.Api.Tests/      # xUnit backend testleri (40/40 Başarılı)
 ```
 
 ---
@@ -75,26 +79,33 @@ c:\Users\yusufemredeniz\Desktop\PSL.ProjectHub\
 - [Node.js 18+](https://nodejs.org/) (npm ile)
 - SQL Server (LocalDB, Express veya Kurumsal SQL Server)
 
-### 2. Veritabanı Yapılandırması
-`src/PSL.ProjectHub.Api/appsettings.json` dosyası içerisindeki bağlantı dizesini kontrol edin veya geliştirme ortamında `dotnet user-secrets` kullanın:
+### 2. Güvenli Yapılandırma ve İlk Yönetici Hesabı
+Kaynak kodda hiçbir açık şifre saklanmaz. İlk sistem yöneticisi (Admin) parolası ve JWT Secret ortam değişkenleri veya `dotnet user-secrets` üzerinden tanımlanır:
 
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=PSLProjectHub;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
-}
+```bash
+# Geliştirme ortamı için user-secrets tanımlaması:
+cd src/PSL.ProjectHub.Api
+dotnet user-secrets set "Jwt:Secret" "SizinCokGuvenliVeEnAz32KarakterlikJwtAnahtariniz2026!"
+dotnet user-secrets set "InitialAdmin:Password" "GuvenliAdminSifreniz123!*"
 ```
 
-> **Önemli:** Uygulama Nebim ERP üretim veritabanına bağlanmaz; kendi `PSLProjectHub` veritabanını kullanır.
+Veya sunucu ortamında ortam değişkenleri (Environment Variables) olarak:
+```powershell
+[System.Environment]::SetEnvironmentVariable('Jwt__Secret', 'GuvenliProductionSecret2026...', 'Machine')
+[System.Environment]::SetEnvironmentVariable('PSL_INITIAL_ADMIN_PASSWORD', 'GuvenliAdminSifreniz123!*', 'Machine')
+```
+
+> **Güvenlik Notu:** Üretim ortamında `Jwt:Secret` tanımlanmamışsa veya 32 karakterden kısaysa uygulama güvenle başlamayı reddeder.
 
 ### 3. Backend'i Başlatma
 ```bash
 # Bağımlılıkları geri yükleyin ve API'yi çalıştırın
-dotnet restore
+dotnet restore PSL.ProjectHub.sln
 dotnet run --project src/PSL.ProjectHub.Api/PSL.ProjectHub.Api.csproj
 ```
 API varsayılan olarak `http://localhost:5000` adresinde çalışacaktır.
 - **Swagger UI:** `http://localhost:5000/swagger`
-- İlk çalıştırmada başlangıç rolleri (`Admin`, `Viewer`), kullanıcıları ve doğrulanmış şirket projeleri otomatik olarak tohumlanır (seeded).
+- İlk başlatmada veritabanı migration'ları (`MigrateAsync`) otomatik uygulanır.
 
 ### 4. Frontend'i Başlatma (Geliştirici Modu)
 ```bash
@@ -102,33 +113,7 @@ cd src/PSL.ProjectHub.Web
 npm install
 npm run dev
 ```
-Arayüz `http://localhost:5173` adresinde açılacaktır. Vite, API isteklerini (`/api/*`) otomatik olarak arka plandaki ASP.NET Core servisine proxy eder.
-
----
-
-## 🔑 Demo Kullanıcı Hesapları
-
-Test ve inceleme için sistemde hazır tanımlı kullanıcılar:
-
-| Rol | Kullanıcı Adı | Şifre | Yetkiler |
-|---|---|---|---|
-| **Admin** | `admin` | `Admin123!*` | Tam yönetim, proje/bağlantı ekleme, düzenleme, arşivleme, URL import |
-| **Viewer** | `viewer` | `Viewer123!*` | Salt-okunur inceleme, bağlantıları açma, sunum modu |
-
-Giriş ekranındaki hızlı demo düğmelerini kullanarak tek tıkla oturum açabilirsiniz.
-
----
-
-## 🌐 URL İçe Aktarma (project-urls.json)
-
-Gerçek şirket URL'leri repository'ye veya Git'e yazılmaz.
-1. `project-urls.example.json` dosyasını kopyalayarak çözüm kök dizininde `project-urls.json` dosyasını oluşturun:
-   ```bash
-   copy project-urls.example.json project-urls.json
-   ```
-2. Gerçek iç ağ / canlı adreslerinizi bu dosyaya girin.
-3. Yönetim panelindeki **"project-urls.json Dosyasından Aktar"** düğmesine tıklayın.
-4. Sistem idempotent çalışır: Aynı dosya defalarca çalıştırılsa bile duplicate kayıt oluşturmaz, mevcut kayıtları günceller.
+Arayüz `http://localhost:5173` adresinde açılacaktır.
 
 ---
 
@@ -136,15 +121,16 @@ Gerçek şirket URL'leri repository'ye veya Git'e yazılmaz.
 
 ### Backend Testleri (xUnit)
 ```bash
-dotnet test tests/PSL.ProjectHub.Api.Tests/PSL.ProjectHub.Api.Tests.csproj
+dotnet test PSL.ProjectHub.sln
 ```
-*Tüm 31 test (Proje CRUD, Slug benzersizliği, Soft delete, URL güvenlik doğrulayıcı, Çift kayıt engelleme, Birincil link mantığı, Idempotent import) başarıyla çalışır.*
+*Tüm 40 test (Proje CRUD, Slug benzersizliği, Soft delete, URL güvenlik doğrulayıcı, Çift kayıt engelleme, Birincil link mantığı, Teknoloji güncelleme, Pasif link filtreleme, Path Traversal koruması, Magic byte dosya kontrolü) başarıyla çalışır.*
 
 ### Frontend Testleri (Vitest)
 ```bash
 cd src/PSL.ProjectHub.Web
-npm run test
+npm test -- --run
 ```
+*Tüm 15 test (Kimlik doğrulama akışı, login zorunluluğu, 403 Forbidden yetkilendirme koruması, süresi dolan token temizleme, güvenli çıkış, sunum modu, proje kartı) başarıyla çalışır.*
 
 ---
 

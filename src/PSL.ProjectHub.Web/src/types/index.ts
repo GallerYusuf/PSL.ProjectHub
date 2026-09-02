@@ -64,6 +64,13 @@ export interface ProjectScreenshotDto {
   fileName: string;
   filePath: string;
   caption?: string;
+  isCover?: boolean;
+  displayOrder: number;
+}
+
+export interface UpdateScreenshotRequest {
+  caption?: string;
+  isCover: boolean;
   displayOrder: number;
 }
 

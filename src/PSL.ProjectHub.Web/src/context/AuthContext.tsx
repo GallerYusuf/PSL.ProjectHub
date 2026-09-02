@@ -19,19 +19,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('psl_user');
-    const savedToken = localStorage.getItem('psl_token');
+    const handleUnauthorized = () => {
+      setUser(null);
+      localStorage.removeItem('psl_token');
+      localStorage.removeItem('psl_user');
+    };
+    window.addEventListener('psl:unauthorized', handleUnauthorized);
 
-    if (savedUser && savedToken) {
+    const checkSession = async () => {
+      const savedUser = localStorage.getItem('psl_user');
+      const savedToken = localStorage.getItem('psl_token');
+
+      if (!savedUser || !savedToken) {
+        setLoading(false);
+        return;
+      }
+
       try {
+        // Token süresinin (exp claim) kontrolü
+        const parts = savedToken.split('.');
+        if (parts.length === 3) {
+          const payload = JSON.parse(atob(parts[1]));
+          if (payload.exp && payload.exp * 1000 < Date.now()) {
+            // Token süresi dolmuş, oturumu temizle
+            handleUnauthorized();
+            setLoading(false);
+            return;
+          }
+        }
+
         const parsed = JSON.parse(savedUser) as AuthUser;
         setUser(parsed);
+
+        // Sunucudan oturumun hâlâ geçerli olduğunu doğrula
+        try {
+          const me = await api.getMe();
+          if (me && me.username) {
+            setUser(prev => prev ? {
+              ...prev,
+              username: me.username,
+              fullName: me.fullName || prev.fullName,
+              email: me.email || prev.email,
+              roles: me.roles || prev.roles,
+            } : null);
+          }
+        } catch {
+          // Eğer sunucu 401 döndüyse api/client zaten handleUnauthorized'ı tetikledi
+        }
       } catch {
-        localStorage.removeItem('psl_user');
-        localStorage.removeItem('psl_token');
+        handleUnauthorized();
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    checkSession();
+
+    return () => {
+      window.removeEventListener('psl:unauthorized', handleUnauthorized);
+    };
   }, []);
 
   const login = async (username: string, password: string) => {

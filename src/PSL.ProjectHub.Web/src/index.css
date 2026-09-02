@@ -1,57 +1,82 @@
+/* ==========================================================================
+   PSL PROJECT HUB — KURUMSAL PROJE OPERASYON MERKEZİ TASARIM SİSTEMİ
+   Tasarım Prensipleri:
+   - Yüksek bilgi yoğunluğu, teknik ve idari editoryal estetik
+   - Koyu neon/SaaS şablonu yerine kırık beyaz / kurumsal çelik mavisi palet
+   - 1px net sınırlar, 4px-6px köşe yarıçapı, WCAG AAA kontrast uyumu
+   ========================================================================== */
+
 :root {
-  /* Corporate Design Tokens - Can be easily adjusted by enterprise theme variables */
-  --primary: #0284c7;
-  --primary-hover: #0369a1;
-  --primary-light: rgba(2, 132, 199, 0.12);
-  --primary-glow: rgba(2, 132, 199, 0.35);
+  /* Kurumsal Ana Renk: Petrol Mavisi / Çelik Lacivert */
+  --primary: #0f4c81;
+  --primary-hover: #0a365c;
+  --primary-subtle: #e8eff6;
+  --primary-border: #9ec5e8;
 
-  --accent-cyan: #06b6d4;
-  --accent-indigo: #6366f1;
-  --accent-emerald: #10b981;
-  --accent-amber: #f59e0b;
-  --accent-rose: #f43f5e;
-  --accent-purple: #a855f7;
+  /* Fonksiyonel Durum Renkleri (Sakin, kurumsal tonlar) */
+  --status-live: #065f46;
+  --status-live-bg: #ecfdf5;
+  --status-live-border: #a7f3d0;
 
-  /* Theme Surfaces & Backgrounds */
-  --bg-app: #080c14;
-  --bg-subtle: #0d1322;
-  --surface-card: rgba(17, 24, 39, 0.75);
-  --surface-card-hover: rgba(26, 36, 56, 0.85);
-  --surface-elevated: #162032;
-  --surface-input: rgba(15, 23, 42, 0.8);
+  --status-dev: #0369a1;
+  --status-dev-bg: #f0f9ff;
+  --status-dev-border: #bae6fd;
 
-  /* Borders & Dividers */
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-card: rgba(255, 255, 255, 0.11);
-  --border-focus: rgba(2, 132, 199, 0.5);
+  --status-pilot: #b45309;
+  --status-pilot-bg: #fffbeb;
+  --status-pilot-border: #fde68a;
 
-  /* Typography Colors */
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
+  --status-maint: #b91c1c;
+  --status-maint-bg: #fef2f2;
+  --status-maint-border: #fecaca;
+
+  --status-archived: #475569;
+  --status-archived-bg: #f1f5f9;
+  --status-archived-border: #cbd5e1;
+
+  --status-vpn: #c2410c;
+  --status-vpn-bg: #fff7ed;
+  --status-vpn-border: #fed7aa;
+
+  /* Yüzey ve Zeminler */
+  --bg-app: #f8fafc;
+  --bg-subtle: #f1f5f9;
+  --surface-card: #ffffff;
+  --surface-card-hover: #fafafa;
+  --surface-elevated: #ffffff;
+  --surface-input: #ffffff;
+
+  /* Sınır Çizgileri */
+  --border-subtle: #e2e8f0;
+  --border-card: #cbd5e1;
+  --border-strong: #94a3b8;
+  --border-focus: #0f4c81;
+
+  /* Tipografi Renkleri (Yüksek Kontrast) */
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
   --text-muted: #64748b;
-  --text-inverse: #0f172a;
+  --text-inverse: #ffffff;
 
-  /* Shadows & Glassmorphism */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-  --shadow-glow: 0 0 20px -2px var(--primary-glow);
-  --backdrop-blur: blur(16px);
+  /* Gölgeler */
+  --shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 1px 3px 0 rgba(15, 23, 42, 0.1), 0 1px 2px -1px rgba(15, 23, 42, 0.1);
+  --shadow-lg: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.1);
 
-  /* Layout */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  /* Geometri */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
   --radius-full: 9999px;
-  --header-height: 72px;
-  --max-width: 1380px;
+  --header-height: 56px;
+  --max-width: 1440px;
 
-  /* Fonts */
-  --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Yazı Tipleri */
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, "Liberation Mono", Menlo, monospace;
 }
 
-/* Reset & Base */
+/* Temel Sıfırlama */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -63,41 +88,19 @@ html, body {
   background-color: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-main);
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-}
-
-/* Background Atmosphere */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 20%;
-  width: 600px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(2, 132, 199, 0.08) 0%, rgba(2, 132, 199, 0) 70%);
-  pointer-events: none;
-  z-index: -1;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  bottom: 0;
-  right: 15%;
-  width: 500px;
-  height: 450px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.06) 0%, rgba(99, 102, 241, 0) 70%);
-  pointer-events: none;
-  z-index: -1;
 }
 
 a {
-  color: inherit;
+  color: var(--primary);
   text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 button, input, select, textarea {
@@ -105,25 +108,27 @@ button, input, select, textarea {
   color: inherit;
 }
 
-/* Common Layout Components */
+/* Kapsayıcı */
 .container {
   width: 100%;
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 1.25rem;
 }
 
-/* Header & Navbar */
+/* ==========================================================================
+   NAVBAR (Kurumsal Operasyon Başlığı)
+   ========================================================================== */
 .navbar {
   position: sticky;
   top: 0;
   height: var(--header-height);
-  background: rgba(8, 12, 20, 0.85);
-  backdrop-filter: var(--backdrop-blur);
+  background: #ffffff;
   border-bottom: 1px solid var(--border-subtle);
   z-index: 100;
   display: flex;
   align-items: center;
+  box-shadow: var(--shadow-sm);
 }
 
 .navbar-inner {
@@ -131,104 +136,225 @@ button, input, select, textarea {
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  gap: 1rem;
 }
 
 .brand-group {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   font-weight: 700;
-  font-size: 1.25rem;
-  letter-spacing: -0.02em;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
 }
 
 .brand-logo-badge {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--primary) 0%, #0369a1 100%);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  box-shadow: 0 2px 10px var(--primary-glow);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.95rem;
 }
 
 .brand-title {
   color: var(--text-primary);
+  font-weight: 700;
 }
 
 .brand-subtitle {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
   font-weight: 500;
   display: block;
 }
 
+/* Ortam Göstergesi */
+.env-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.env-badge-prod {
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.env-badge-dev {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .nav-link {
-  padding: 0.5rem 0.9rem;
+  padding: 0.45rem 0.75rem;
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  font-weight: 500;
-  font-size: 0.9rem;
+  font-weight: 600;
+  font-size: 0.85rem;
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  transition: all 0.2s ease;
+  gap: 0.4rem;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: transparent;
 }
 
-.nav-link:hover, .nav-link.active {
+.nav-link:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-subtle);
+  text-decoration: none;
 }
 
 .nav-link.active {
   color: var(--primary);
-  background: var(--primary-light);
+  background: var(--primary-subtle);
+  border-color: var(--primary-border);
 }
 
-/* Action Buttons */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ==========================================================================
+   METRİK ŞERİDİ (High-density Metric Ribbon)
+   ========================================================================== */
+.metric-ribbon {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  background: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  margin: 1.25rem 0;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.metric-item {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border-right: 1px solid var(--border-subtle);
+}
+
+.metric-item:last-child {
+  border-right: none;
+}
+
+.metric-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metric-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   KARTLAR VE PANELLER
+   ========================================================================== */
+.glass-card, .card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease;
+}
+
+.glass-card:hover, .card:hover {
+  border-color: var(--border-card);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ==========================================================================
+   BUTONLAR
+   ========================================================================== */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.55rem 1.15rem;
-  border-radius: var(--radius-md);
-  font-size: 0.88rem;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s ease;
   border: 1px solid transparent;
+  line-height: 1.3;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  background: var(--primary);
   color: #ffffff;
-  box-shadow: 0 2px 8px var(--primary-glow);
+  border-color: var(--primary);
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px var(--primary-glow);
-  filter: brightness(1.08);
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+  text-decoration: none;
 }
 
 .btn-secondary {
-  background: var(--surface-elevated);
+  background: #ffffff;
   border-color: var(--border-card);
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 
 .btn-secondary:hover {
-  background: var(--surface-card-hover);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--bg-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  text-decoration: none;
 }
 
 .btn-ghost {
@@ -237,166 +363,168 @@ button, input, select, textarea {
 }
 
 .btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-subtle);
   color: var(--text-primary);
+  text-decoration: none;
+}
+
+.btn-danger {
+  background: #ffffff;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.btn-danger:hover {
+  background: #fef2f2;
+  border-color: #ef4444;
 }
 
 .btn-sm {
-  padding: 0.35rem 0.75rem;
-  font-size: 0.8rem;
-  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
 }
 
 .btn-lg {
-  padding: 0.75rem 1.6rem;
+  padding: 0.65rem 1.25rem;
   font-size: 0.95rem;
-  border-radius: var(--radius-md);
 }
 
-/* Badges */
+/* ==========================================================================
+   ROZETLER (BADGES)
+   ========================================================================== */
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  gap: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .badge-live {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: var(--status-live-bg);
+  color: var(--status-live);
+  border: 1px solid var(--status-live-border);
 }
 
 .badge-pilot {
-  background: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: var(--status-pilot-bg);
+  color: var(--status-pilot);
+  border: 1px solid var(--status-pilot-border);
 }
 
 .badge-development {
-  background: rgba(6, 182, 212, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(6, 182, 212, 0.3);
+  background: var(--status-dev-bg);
+  color: var(--status-dev);
+  border: 1px solid var(--status-dev-border);
 }
 
 .badge-maintenance {
-  background: rgba(244, 63, 94, 0.15);
-  color: #fb7185;
-  border: 1px solid rgba(244, 63, 94, 0.3);
+  background: var(--status-maint-bg);
+  color: var(--status-maint);
+  border: 1px solid var(--status-maint-border);
 }
 
 .badge-archived {
-  background: rgba(100, 116, 139, 0.15);
-  color: #94a3b8;
-  border: 1px solid rgba(100, 116, 139, 0.3);
+  background: var(--status-archived-bg);
+  color: var(--status-archived);
+  border: 1px solid var(--status-archived-border);
 }
 
 .badge-vpn {
-  background: rgba(234, 88, 12, 0.15);
-  color: #fb923c;
-  border: 1px solid rgba(234, 88, 12, 0.3);
+  background: var(--status-vpn-bg);
+  color: var(--status-vpn);
+  border: 1px solid var(--status-vpn-border);
 }
 
 .badge-verified {
-  background: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
 }
 
 .badge-pending {
-  background: rgba(168, 85, 247, 0.15);
-  color: #c084fc;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: #fdf4ff;
+  color: #86198f;
+  border: 1px solid #f5d0fe;
 }
 
-/* Cards & Glassmorphism */
-.glass-card {
-  background: var(--surface-card);
-  backdrop-filter: var(--backdrop-blur);
-  border: 1px solid var(--border-card);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+/* Simüle / Mock Veri Rozeti */
+.badge-demo {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px dashed #94a3b8;
+  font-size: 0.7rem;
 }
 
-.glass-card:hover {
-  background: var(--surface-card-hover);
-  border-color: rgba(255, 255, 255, 0.18);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-/* Stat KPI Cards */
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: var(--surface-card);
+/* ==========================================================================
+   TABLOLAR (Teknik Envanter Tablosu)
+   ========================================================================== */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  position: relative;
-  overflow: hidden;
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
 }
 
-.stat-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: var(--primary);
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.84rem;
 }
 
-.stat-label {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-  font-weight: 500;
+.table th {
+  background: #f8fafc;
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
 }
 
-.stat-value {
-  font-size: 1.85rem;
-  font-weight: 800;
+.table td {
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--border-subtle);
   color: var(--text-primary);
+  vertical-align: middle;
 }
 
-/* Projects Grid & Views */
-.projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.25rem;
+.table tr:last-child td {
+  border-bottom: none;
 }
 
-.projects-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
+.table tbody tr:hover {
+  background: #f8fafc;
 }
 
-/* Form Controls */
+.code-url {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--primary);
+  word-break: break-all;
+}
+
+/* ==========================================================================
+   FORM ELEMANLARI
+   ========================================================================== */
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
-  margin-bottom: 1.15rem;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
 }
 
 .form-label {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-secondary);
 }
@@ -404,29 +532,49 @@ button, input, select, textarea {
 .form-input, .form-select, .form-textarea {
   background: var(--surface-input);
   border: 1px solid var(--border-card);
-  border-radius: var(--radius-md);
-  padding: 0.65rem 0.95rem;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
   color: var(--text-primary);
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 0.85rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-glow);
+  box-shadow: 0 0 0 2px rgba(15, 76, 129, 0.15);
 }
 
 .form-textarea {
-  min-height: 90px;
+  min-height: 80px;
   resize: vertical;
 }
 
-/* Modal System */
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-wrap input {
+  padding-left: 2rem;
+  width: 100%;
+}
+
+.search-input-icon {
+  position: absolute;
+  left: 0.65rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   MODAL SİSTEMİ
+   ========================================================================== */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(8px);
+  background: rgba(15, 23, 42, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -435,76 +583,189 @@ button, input, select, textarea {
 }
 
 .modal-content {
-  background: #0d1322;
+  background: #ffffff;
   border: 1px solid var(--border-card);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   width: 100%;
   max-width: 680px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-  padding: 1.75rem;
+  box-shadow: var(--shadow-lg);
+  padding: 1.5rem;
 }
 
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .modal-title {
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
+  color: var(--text-primary);
 }
 
-/* Presentation Mode Fullscreen */
+/* ==========================================================================
+   SUNUM MODU (Executive Presentation Mode)
+   ========================================================================== */
 .presentation-container {
   position: fixed;
   inset: 0;
-  background: #060911;
+  background: #0f172a;
+  color: #f8fafc;
   z-index: 2000;
   overflow-y: auto;
-  padding: 2.5rem;
+  padding: 2rem;
   display: flex;
   flex-direction: column;
 }
 
 .presentation-hero {
-  max-width: 1100px;
+  max-width: 1050px;
   margin: 0 auto;
   width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-/* Alert boxes */
-.alert-box {
+.presentation-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================================================
+   GALERİ VE EKRAN GÖRÜNTÜLERİ (Screenshots Gallery)
+   ========================================================================== */
+.screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.screenshot-card {
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 0.85rem 1.15rem;
-  font-size: 0.88rem;
+  overflow: hidden;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.screenshot-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.screenshot-thumb {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  display: block;
+  background: #f1f5f9;
+}
+
+.screenshot-cover-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: var(--primary);
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-sm);
+}
+
+.screenshot-caption {
+  padding: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   UYARI KUTULARI VE DURUM BİLDİRİMLERİ
+   ========================================================================== */
+.alert-box {
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  font-size: 0.84rem;
   margin-bottom: 1rem;
   display: flex;
   align-items: flex-start;
-  gap: 0.65rem;
+  gap: 0.6rem;
 }
 
 .alert-warning {
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  color: #fcd34d;
+  background: var(--status-pilot-bg);
+  border: 1px solid var(--status-pilot-border);
+  color: var(--status-pilot);
 }
 
 .alert-info {
-  background: rgba(2, 132, 199, 0.12);
-  border: 1px solid rgba(2, 132, 199, 0.3);
-  color: #7dd3fc;
+  background: var(--primary-subtle);
+  border: 1px solid var(--primary-border);
+  color: var(--primary);
 }
 
-/* Responsive adjustments */
+.alert-danger {
+  background: var(--status-maint-bg);
+  border: 1px solid var(--status-maint-border);
+  color: var(--status-maint);
+}
+
+/* ==========================================================================
+   YÜKLEME VE BOŞ DURUM (Empty & Loading States)
+   ========================================================================== */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--text-muted);
+  border: 1px dashed var(--border-card);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+}
+
+.empty-state-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+/* Sayfa Gridleri */
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1rem;
+}
+
+.projects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 @media (max-width: 768px) {
   .projects-grid {
     grid-template-columns: 1fr;
+  }
+  .metric-ribbon {
+    grid-template-columns: repeat(2, 1fr);
   }
   .brand-subtitle {
     display: none;

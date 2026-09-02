@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Eye, ShieldAlert, CheckCircle2, Clock, MonitorPlay, Layers } from 'lucide-react';
+import { ExternalLink, Eye, ShieldAlert, CheckCircle2, Clock, PlaySquare } from 'lucide-react';
 import { ProjectSummaryDto, ProjectStatus } from '../types';
 
 interface ProjectCardProps {
@@ -37,24 +37,24 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     : null;
 
   return (
-    <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* Top Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', marginBottom: '0.85rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+    <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '1.25rem' }}>
+      {/* Üst Kısım: Rozetler ve Sunum Düğmesi */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.6rem', marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
           <span className={`badge ${getStatusBadgeClass(project.status)}`}>
             {project.statusText}
           </span>
-          <span className="badge" style={{ background: 'rgba(255, 255, 255, 0.06)', color: 'var(--text-secondary)' }}>
+          <span className="badge" style={{ background: 'var(--bg-subtle)', color: 'var(--text-secondary)' }}>
             {project.category}
           </span>
           {project.isVerified ? (
             <span className="badge badge-verified" title="Proje bilgileri doğrulanmıştır">
-              <CheckCircle2 size={12} />
+              <CheckCircle2 size={11} />
               <span>Doğrulandı</span>
             </span>
           ) : (
             <span className="badge badge-pending" title="Proje detayları veya URL'leri doğrulama beklemektedir">
-              <Clock size={12} />
+              <Clock size={11} />
               <span>Doğrulama Bekliyor</span>
             </span>
           )}
@@ -65,20 +65,20 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
             className="btn btn-ghost btn-sm"
             onClick={() => onStartPresentation(project)}
             title="Sunum Modunda Aç"
-            style={{ padding: '0.25rem 0.5rem', color: 'var(--text-muted)' }}
+            style={{ padding: '0.2rem 0.45rem', color: 'var(--text-muted)' }}
           >
-            <MonitorPlay size={16} />
+            <PlaySquare size={15} />
           </button>
         )}
       </div>
 
-      {/* Title & Short Description */}
+      {/* Proje Başlığı */}
       <h3
         style={{
-          fontSize: '1.2rem',
+          fontSize: '1.05rem',
           fontWeight: 700,
           color: 'var(--text-primary)',
-          marginBottom: '0.5rem',
+          marginBottom: '0.4rem',
           lineHeight: 1.3,
           cursor: 'pointer'
         }}
@@ -87,82 +87,83 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         {project.name}
       </h3>
 
+      {/* Kısa Açıklama */}
       <p style={{
         color: 'var(--text-secondary)',
-        fontSize: '0.88rem',
+        fontSize: '0.84rem',
         lineHeight: 1.5,
-        marginBottom: '1.25rem',
+        marginBottom: '1rem',
         flexGrow: 1
       }}>
         {project.shortDescription}
       </p>
 
-      {/* Technologies */}
+      {/* Teknolojiler */}
       {project.technologies && project.technologies.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '1.15rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '0.85rem' }}>
           {project.technologies.slice(0, 4).map((tech) => (
             <span
               key={tech}
               style={{
-                fontSize: '0.74rem',
-                background: 'rgba(255, 255, 255, 0.04)',
+                fontSize: '0.72rem',
+                background: 'var(--bg-subtle)',
                 border: '1px solid var(--border-subtle)',
-                padding: '0.15rem 0.5rem',
+                padding: '0.1rem 0.45rem',
                 borderRadius: 'var(--radius-sm)',
-                color: 'var(--text-muted)'
+                color: 'var(--text-secondary)',
+                fontWeight: 500
               }}
             >
               {tech}
             </span>
           ))}
           {project.technologies.length > 4 && (
-            <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)', alignSelf: 'center' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', alignSelf: 'center' }}>
               +{project.technologies.length - 4}
             </span>
           )}
         </div>
       )}
 
-      {/* VPN & Network Warning Badge */}
+      {/* VPN & Ağ Uyarısı */}
       {(project.hasVpnLink || project.primaryLink?.requiresVpn) && (
-        <div style={{ marginBottom: '1rem' }}>
-          <span className="badge badge-vpn" style={{ fontSize: '0.74rem' }}>
-            <ShieldAlert size={12} />
+        <div style={{ marginBottom: '0.85rem' }}>
+          <span className="badge badge-vpn">
+            <ShieldAlert size={11} />
             <span>Şirket Ağı veya VPN Gerekebilir</span>
           </span>
         </div>
       )}
 
-      {/* Footer Info & Actions */}
+      {/* Alt Bilgi ve Eylem Düğmeleri */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingTop: '0.85rem',
+        paddingTop: '0.75rem',
         borderTop: '1px solid var(--border-subtle)',
         marginTop: 'auto',
-        fontSize: '0.82rem',
+        fontSize: '0.78rem',
         color: 'var(--text-muted)'
       }}>
         <div>
           {project.ownerName ? (
             <span>Sorumlu: <strong style={{ color: 'var(--text-secondary)' }}>{project.ownerName}</strong></span>
           ) : (
-            <span>Güncellendi: {formattedDate || '-'}</span>
+            <span>{formattedDate ? `Güncellendi: ${formattedDate}` : ''}</span>
           )}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <button
             className="btn btn-secondary btn-sm"
             onClick={() => onViewDetails(project.slug)}
             id={`btn-details-${project.slug}`}
           >
-            <Eye size={14} />
+            <Eye size={13} />
             <span>Detaylar</span>
           </button>
 
-          {/* Primary Action Button */}
           {hasPrimaryUrl && (
             <a
               href={project.primaryLink!.url}
@@ -172,7 +173,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
               id={`btn-open-${project.slug}`}
               title={project.primaryLink!.label || 'Uygulamayı Aç'}
             >
-              <ExternalLink size={14} />
+              <ExternalLink size={13} />
               <span>Uygulamayı Aç</span>
             </a>
           )}

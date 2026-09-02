@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Search,
   Filter,
-  Grid,
-  List,
+  LayoutGrid,
+  Table as TableIcon,
   RotateCcw,
   Plus,
   Layers,
@@ -12,7 +12,9 @@ import {
   Eye,
   CheckCircle2,
   Clock,
-  ShieldAlert
+  ShieldAlert,
+  PlaySquare,
+  FileText
 } from 'lucide-react';
 import { api } from '../api/client';
 import { ProjectSummaryDto, ProjectStatus } from '../types';
@@ -23,27 +25,46 @@ interface ProjectsPageProps {
   onViewDetails: (slug: string) => void;
   onStartPresentation: (project: ProjectSummaryDto) => void;
   onAddNewProject?: () => void;
+  initialSearch?: string;
 }
 
 export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   onViewDetails,
   onStartPresentation,
   onAddNewProject,
+  initialSearch = ''
 }) => {
   const { isAdmin } = useAuth();
   const [projects, setProjects] = useState<ProjectSummaryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filters state
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<ProjectStatus | ''>('');
-  const [category, setCategory] = useState('');
-  const [onlyWithLiveUrl, setOnlyWithLiveUrl] = useState(false);
-  const [sortBy, setSortBy] = useState('updated_desc');
+  // URL Query parametreleri ile senkronizasyon
+  const getInitialParam = (param: string, fallback: string = '') => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(param) || fallback;
+  };
 
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [search, setSearch] = useState(initialSearch || getInitialParam('q'));
+  const [status, setStatus] = useState<ProjectStatus | ''>(getInitialParam('status') as ProjectStatus | '');
+  const [category, setCategory] = useState(getInitialParam('category'));
+  const [onlyWithLiveUrl, setOnlyWithLiveUrl] = useState(getInitialParam('liveOnly') === 'true');
+  const [sortBy, setSortBy] = useState(getInitialParam('sort', 'updated_desc'));
+
+  // Filtreler değiştikçe URL parametrelerini güncelle
   useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) params.set('q', search);
+    if (status) params.set('status', status);
+    if (category) params.set('category', category);
+    if (onlyWithLiveUrl) params.set('liveOnly', 'true');
+    if (sortBy !== 'updated_desc') params.set('sort', sortBy);
+
+    const queryString = params.toString();
+    const newUrl = `${window.location.pathname}${queryString ? `?${queryString}` : ''}${window.location.hash}`;
+    window.history.replaceState(null, '', newUrl);
+
     loadProjects();
   }, [search, status, category, onlyWithLiveUrl, sortBy]);
 
@@ -74,69 +95,85 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
     setSortBy('updated_desc');
   };
 
-  // Distinct categories from returned projects or defaults
-  const categories = Array.from(new Set(projects.map((p) => p.category))).filter(Boolean);
+  const categories = useMemo(() => {
+    return Array.from(new Set(projects.map((p) => p.category))).filter(Boolean);
+  }, [projects]);
 
   return (
-    <div className="container" style={{ padding: '2rem 1.5rem' }}>
-      {/* Top Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+    <div className="container" style={{ padding: '1.75rem 1.25rem 3rem' }}>
+      {/* Üst Başlık & Eylem Çubuğu */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-            Şirket Projeleri Envanteri
+          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.2rem' }}>
+            PSL PROJECT HUB • PORTFÖY İNDEKSİ
+          </div>
+          <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
+            Proje ve Uygulama Envanteri
           </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-            Toplam {projects.length} proje listeleniyor
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', marginTop: '0.2rem' }}>
+            Kriterlere uyan <strong>{projects.length}</strong> sistem listeleniyor
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          {/* Görünüm Değiştirici: Tablo vs Kart */}
+          <div style={{ display: 'flex', background: '#ffffff', borderRadius: 'var(--radius-sm)', padding: '2px', border: '1px solid var(--border-card)' }}>
+            <button
+              className="btn btn-ghost btn-sm"
+              style={{
+                background: viewMode === 'table' ? 'var(--primary-subtle)' : 'transparent',
+                color: viewMode === 'table' ? 'var(--primary)' : 'var(--text-secondary)',
+                fontWeight: viewMode === 'table' ? 700 : 500,
+                padding: '0.3rem 0.6rem'
+              }}
+              onClick={() => setViewMode('table')}
+              title="Portföy Envanter Tablosu Görünümü"
+            >
+              <TableIcon size={14} />
+              <span>Tablo</span>
+            </button>
+            <button
+              className="btn btn-ghost btn-sm"
+              style={{
+                background: viewMode === 'grid' ? 'var(--primary-subtle)' : 'transparent',
+                color: viewMode === 'grid' ? 'var(--primary)' : 'var(--text-secondary)',
+                fontWeight: viewMode === 'grid' ? 700 : 500,
+                padding: '0.3rem 0.6rem'
+              }}
+              onClick={() => setViewMode('grid')}
+              title="Kompakt Kart Görünümü"
+            >
+              <LayoutGrid size={14} />
+              <span>Kartlar</span>
+            </button>
+          </div>
+
           {isAdmin && onAddNewProject && (
             <button className="btn btn-primary btn-sm" onClick={onAddNewProject}>
-              <Plus size={16} />
+              <Plus size={14} />
               <span>Yeni Proje Tanımla</span>
             </button>
           )}
-
-          {/* View Mode Toggle */}
-          <div style={{ display: 'flex', background: 'var(--surface-elevated)', borderRadius: 'var(--radius-md)', padding: '2px', border: '1px solid var(--border-subtle)' }}>
-            <button
-              className={`btn btn-ghost btn-sm ${viewMode === 'grid' ? 'active' : ''}`}
-              style={{ padding: '0.35rem 0.6rem', background: viewMode === 'grid' ? 'var(--primary-light)' : 'transparent', color: viewMode === 'grid' ? 'var(--primary)' : 'var(--text-muted)' }}
-              onClick={() => setViewMode('grid')}
-              title="Kart Görünümü"
-            >
-              <Grid size={16} />
-            </button>
-            <button
-              className={`btn btn-ghost btn-sm ${viewMode === 'list' ? 'active' : ''}`}
-              style={{ padding: '0.35rem 0.6rem', background: viewMode === 'list' ? 'var(--primary-light)' : 'transparent', color: viewMode === 'list' ? 'var(--primary)' : 'var(--text-muted)' }}
-              onClick={() => setViewMode('list')}
-              title="Liste Görünümü"
-            >
-              <List size={16} />
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* Search & Filter Bar */}
-      <div className="glass-card" style={{ padding: '1rem 1.25rem', marginBottom: '1.75rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem', alignItems: 'center' }}>
-          {/* Search Box */}
-          <div style={{ position: 'relative' }}>
-            <Search size={16} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+      {/* Gelişmiş Filtreleme Paneli */}
+      <div className="card" style={{ padding: '0.9rem 1.15rem', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', alignItems: 'center' }}>
+          
+          {/* Arama Alanı */}
+          <div className="search-input-wrap">
+            <Search size={14} className="search-input-icon" />
             <input
               type="text"
               className="form-input"
-              style={{ width: '100%', paddingLeft: '2.4rem' }}
-              placeholder="Proje adı veya sorumlu ara..."
+              placeholder="Proje veya sorumlu ara..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
-          {/* Status Dropdown */}
+          {/* Durum Filtresi */}
           <div>
             <select
               className="form-select"
@@ -146,14 +183,14 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
             >
               <option value="">Tüm Durumlar</option>
               <option value="Live">Canlı (Live)</option>
-              <option value="Pilot">Pilot</option>
+              <option value="Pilot">Pilot Aşamada</option>
               <option value="Development">Geliştiriliyor</option>
               <option value="Maintenance">Bakımda</option>
               <option value="Archived">Arşivlendi</option>
             </select>
           </div>
 
-          {/* Category Dropdown */}
+          {/* Kategori Filtresi */}
           <div>
             <select
               className="form-select"
@@ -170,7 +207,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
             </select>
           </div>
 
-          {/* Sort Dropdown */}
+          {/* Sıralama */}
           <div>
             <select
               className="form-select"
@@ -186,14 +223,14 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
           </div>
         </div>
 
-        {/* Filter Checkboxes & Reset */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.85rem', paddingTop: '0.85rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.86rem', color: 'var(--text-secondary)' }}>
+        {/* Canlı URL Filtresi ve Temizleme */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.65rem', paddingTop: '0.65rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.6rem' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', cursor: 'pointer', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
             <input
               type="checkbox"
               checked={onlyWithLiveUrl}
               onChange={(e) => setOnlyWithLiveUrl(e.target.checked)}
-              style={{ width: '16px', height: '16px', accentColor: 'var(--primary)' }}
+              style={{ accentColor: 'var(--primary)', width: '15px', height: '15px' }}
             />
             <span>Yalnızca Canlı (Production) URL’si Bulunanlar</span>
           </label>
@@ -201,39 +238,155 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
           <button
             className="btn btn-ghost btn-sm"
             onClick={handleResetFilters}
-            style={{ fontSize: '0.82rem' }}
+            style={{ fontSize: '0.78rem' }}
           >
-            <RotateCcw size={13} />
-            <span>Filtreleri Temizle</span>
+            <RotateCcw size={12} />
+            <span>Filtreleri Sıfırla</span>
           </button>
         </div>
       </div>
 
-      {/* Content Area */}
+      {/* Yükleme ve Hata Durumları */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-          <Layers size={36} className="animate-spin" color="var(--primary)" style={{ margin: '0 auto 1rem' }} />
-          <div style={{ color: 'var(--text-secondary)' }}>Projeler filtreleniyor...</div>
+        <div style={{ textAlign: 'center', padding: '3.5rem 0' }}>
+          <Layers size={28} className="animate-spin" color="var(--primary)" style={{ margin: '0 auto 0.75rem' }} />
+          <div style={{ color: 'var(--text-secondary)', fontSize: '0.86rem' }}>Envanter kayıtları listeleniyor...</div>
         </div>
       ) : error ? (
-        <div className="alert-box alert-warning">
-          <AlertCircle size={20} />
+        <div className="alert-box alert-danger">
+          <AlertCircle size={16} />
           <div>{error}</div>
         </div>
       ) : projects.length === 0 ? (
-        <div className="glass-card" style={{ textAlign: 'center', padding: '3.5rem 1.5rem' }}>
-          <Filter size={36} color="var(--text-muted)" style={{ margin: '0 auto 0.75rem' }} />
-          <h3 style={{ fontSize: '1.15rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-            Aramanızla Eşleşen Proje Bulunamadı
-          </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
-            Lütfen arama terimlerini veya seçtiğiniz filtre kriterlerini değiştirerek tekrar deneyin.
+        <div className="empty-state">
+          <Filter size={32} color="var(--text-muted)" style={{ margin: '0 auto 0.5rem' }} />
+          <div className="empty-state-title">Aramanızla Eşleşen Proje Bulunamadı</div>
+          <p style={{ fontSize: '0.82rem', marginBottom: '1rem' }}>
+            Arama terimini veya seçtiğiniz filtre kriterlerini değiştirerek tekrar deneyebilirsiniz.
           </p>
           <button className="btn btn-secondary btn-sm" onClick={handleResetFilters}>
-            Tüm Filtreleri Temizle
+            Filtreleri Temizle
           </button>
         </div>
-      ) : viewMode === 'grid' ? (
+      ) : viewMode === 'table' ? (
+        /* Kurumsal Portföy İndeksi / Envanter Tablosu */
+        <div className="table-container">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Proje Adı</th>
+                <th>Kategori</th>
+                <th>Durum</th>
+                <th>Birincil URL</th>
+                <th>Ağ & VPN</th>
+                <th>Doğrulama</th>
+                <th>Sorumlu</th>
+                <th style={{ textAlign: 'right' }}>İşlemler</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.map((p) => {
+                const primary = p.primaryLink;
+                return (
+                  <tr key={p.id}>
+                    <td>
+                      <div
+                        style={{ fontWeight: 700, color: 'var(--text-primary)', cursor: 'pointer' }}
+                        onClick={() => onViewDetails(p.slug)}
+                        title="Proje Dosyasını Aç"
+                      >
+                        {p.name}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
+                        {p.slug} {p.currentVersion ? `• ${p.currentVersion}` : ''}
+                      </div>
+                    </td>
+                    <td>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                        {p.category}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`badge ${
+                        p.status === 'Live' ? 'badge-live' :
+                        p.status === 'Pilot' ? 'badge-pilot' :
+                        p.status === 'Development' ? 'badge-development' :
+                        p.status === 'Maintenance' ? 'badge-maintenance' : 'badge-archived'
+                      }`}>
+                        {p.statusText}
+                      </span>
+                    </td>
+                    <td>
+                      {primary ? (
+                        <a
+                          href={primary.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="code-url"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                        >
+                          <span>{primary.label || primary.url}</span>
+                          <ExternalLink size={11} />
+                        </a>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>Bağlantı Yok</span>
+                      )}
+                    </td>
+                    <td>
+                      {p.hasVpnLink ? (
+                        <span className="badge badge-vpn">VPN Gerekli</span>
+                      ) : (
+                        <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>Genel Ağ</span>
+                      )}
+                    </td>
+                    <td>
+                      {p.isVerified ? (
+                        <span className="badge badge-verified">
+                          <CheckCircle2 size={10} />
+                          <span>Doğrulandı</span>
+                        </span>
+                      ) : (
+                        <span className="badge badge-pending">
+                          <Clock size={10} />
+                          <span>İncelenmedi</span>
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        {p.ownerName || 'Belirtilmedi'}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                        {p.department || ''}
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => onStartPresentation(p)}
+                          title="Sunum Modunda Aç"
+                        >
+                          <PlaySquare size={13} />
+                        </button>
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => onViewDetails(p.slug)}
+                          title="Proje Dosyasını Aç"
+                        >
+                          <FileText size={13} />
+                          <span>Dosya</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        /* Kompakt Kartlar Görünümü */
         <div className="projects-grid">
           {projects.map((p) => (
             <ProjectCard
@@ -243,85 +396,6 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
               onStartPresentation={onStartPresentation}
             />
           ))}
-        </div>
-      ) : (
-        /* List View */
-        <div className="projects-list">
-          {projects.map((p) => {
-            const hasPrimaryUrl = p.primaryLink && p.primaryLink.isActive && p.primaryLink.url;
-            return (
-              <div
-                key={p.id}
-                className="glass-card"
-                style={{
-                  padding: '1.15rem 1.5rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '1.5rem',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <div style={{ flex: '1 1 350px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
-                    <h3
-                      style={{ fontSize: '1.1rem', fontWeight: 700, cursor: 'pointer' }}
-                      onClick={() => onViewDetails(p.slug)}
-                    >
-                      {p.name}
-                    </h3>
-                    <span className={`badge ${p.status === 'Live' ? 'badge-live' : 'badge-development'}`} style={{ fontSize: '0.72rem' }}>
-                      {p.statusText}
-                    </span>
-                    <span className="badge" style={{ background: 'rgba(255, 255, 255, 0.05)', fontSize: '0.72rem' }}>
-                      {p.category}
-                    </span>
-                    {p.isVerified ? (
-                      <span className="badge badge-verified" style={{ fontSize: '0.7rem' }}>
-                        <CheckCircle2 size={11} />
-                        <span>Doğrulandı</span>
-                      </span>
-                    ) : (
-                      <span className="badge badge-pending" style={{ fontSize: '0.7rem' }}>
-                        <Clock size={11} />
-                        <span>Doğrulama Bekliyor</span>
-                      </span>
-                    )}
-                  </div>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                    {p.shortDescription}
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  {p.hasVpnLink && (
-                    <span className="badge badge-vpn" style={{ fontSize: '0.72rem' }}>
-                      <ShieldAlert size={12} />
-                      <span>İç Ağ / VPN</span>
-                    </span>
-                  )}
-
-                  <button className="btn btn-secondary btn-sm" onClick={() => onViewDetails(p.slug)}>
-                    <Eye size={14} />
-                    <span>Detaylar</span>
-                  </button>
-
-                  {hasPrimaryUrl && (
-                    <a
-                      href={p.primaryLink!.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-primary btn-sm"
-                      title={p.primaryLink!.label}
-                    >
-                      <ExternalLink size={14} />
-                      <span>Uygulamayı Aç</span>
-                    </a>
-                  )}
-                </div>
-              </div>
-            );
-          })}
         </div>
       )}
     </div>
