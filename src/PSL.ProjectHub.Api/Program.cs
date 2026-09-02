@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Infrastructure katmanı kaydı (DbContext, Identity, Repository & Servisler)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Controller'lar ve enum string serileştirici
+// Controller''lar ve enum string serileştirici
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -22,19 +22,20 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
 
-// JWT Kimlik Doğrulama Yapılandırması ve Güvenlik Sertleştirmesi
+// JWT Kimlik Doğrulama Yapılandırması
 var jwtSecret = builder.Configuration["Jwt:Secret"];
 if (builder.Environment.IsProduction())
 {
-    // Üretim ortamında secret eksikse veya 32 karakterden kısaysa uygulama güvenle başlamayı reddeder
+    // Production''da secret eksikse veya kısaysa uygulama güvenle başlamayı reddeder
     if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32)
     {
-        throw new InvalidOperationException("KRİTİK GÜVENLİK HATASI: Production ortamında 'Jwt:Secret' zorunludur ve en az 32 karakter (256-bit) uzunluğunda olmalıdır. Uygulama başlatılamaz.");
+        throw new InvalidOperationException(
+            "KRİTİK GÜVENLİK HATASI: Production ortamında ''Jwt:Secret'' zorunludur ve " +
+            "en az 32 karakter (256-bit) uzunluğunda olmalıdır.");
     }
 }
 else
 {
-    // Geliştirme ortamında eğer secret ayarlanmamışsa güvenli geliştirici anahtarı kullanılır
     jwtSecret = string.IsNullOrWhiteSpace(jwtSecret)
         ? "PSL_ProjectHub_Dev_Super_Secret_Key_For_Local_2026_Secure_Token!"
         : jwtSecret;
@@ -67,19 +68,19 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// Rate Limiting (Kaba kuvvet / brute-force saldırılarına karşı koruma)
+// Rate Limiting — brute-force koruması
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.AddFixedWindowLimiter("LoginRateLimit", opt =>
     {
-        opt.PermitLimit = 5; // 1 dakikada en fazla 5 login denemesi
+        opt.PermitLimit = 5;
         opt.Window = TimeSpan.FromMinutes(1);
         opt.QueueLimit = 0;
     });
 });
 
-// Swagger / OpenAPI Dokümantasyonu
+// Swagger / OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -87,12 +88,12 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "PSL Project Hub API",
         Version = "v1",
-        Description = "PSL İç ve Dış Ticaret A.Ş. / Gallery Crystal Proje Operasyon Merkezi API'si"
+        Description = "PSL Project Hub — Şirket İçi Proje Envanter ve Sunum Sistemi"
     });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Bearer Yetkilendirme. Örnek: 'Bearer {token}'",
+        Description = "JWT Bearer Yetkilendirme. Örnek: ''Bearer {token}''",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -104,18 +105,14 @@ builder.Services.AddSwaggerGen(c =>
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             Array.Empty<string>()
         }
     });
 });
 
-// CORS Yapılandırması: AllowAnyOrigin kaldırıldı, yapılandırmadaki izinli adreslerle sınırlandırıldı
+// CORS — AllowAnyOrigin kaldırıldı; yapılandırmadaki izinli adreslerle sınırlandırıldı
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? ["http://localhost:5173", "http://localhost:3000", "http://localhost:5000"];
 
@@ -132,17 +129,17 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Global Hata Yönetim Middleware'i
+// Global hata yönetim middleware
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
-// HTTPS Redirection ve HSTS (Üretim ortamı için)
+// HTTPS Redirection ve HSTS (production)
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
     app.UseHttpsRedirection();
 }
 
-// Swagger arayüzü (Development ve Staging ortamlarında)
+// Swagger (development ve staging)
 if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
     app.UseSwagger();
@@ -156,7 +153,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 app.UseCors("PslCorsPolicy");
 app.UseRateLimiter();
 
-// React SPA Statik Dosyaları
+// React SPA statik dosyaları
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
@@ -165,10 +162,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-// React SPA Client-side yönlendirme fallback
+// React SPA client-side yönlendirme fallback
 app.MapFallbackToFile("index.html");
 
-// Kontrollü ve loglanabilir veritabanı migration & tohumlama işlemi (EnsureCreated kaldırıldı)
+// Veritabanı migration ve tohumlama
+// Ham SQL geçmişi manipülasyonu kaldırıldı — yalnızca EF Migrations kullanılır.
+// Migration hatası uygulamanın "hazır" duruma geçmesini engeller.
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -178,42 +177,21 @@ using (var scope = app.Services.CreateScope())
         var db = services.GetRequiredService<AppDbContext>();
         if (db.Database.IsRelational())
         {
-            logger.LogInformation("Veritabanı migration'ları kontrol ediliyor ve uygulanıyor...");
-            
-            // Eğer veritabanı önceden EnsureCreated ile açılmışsa, InitialCreate'i geçmişe ekle ve şemayı uyarla
-            await db.Database.ExecuteSqlRawAsync(@"
-                IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = '__EFMigrationsHistory')
-                BEGIN
-                    CREATE TABLE [__EFMigrationsHistory] (
-                        [MigrationId] nvarchar(150) NOT NULL,
-                        [ProductVersion] nvarchar(32) NOT NULL,
-                        CONSTRAINT [PK___EFMigrationsHistory] PRIMARY KEY ([MigrationId])
-                    );
-                END
-
-                IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'AspNetRoles')
-                   AND NOT EXISTS (SELECT 1 FROM [__EFMigrationsHistory] WHERE [MigrationId] = '20260902075254_InitialCreate')
-                BEGIN
-                    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-                    VALUES ('20260902075254_InitialCreate', '8.0.0');
-                END
-
-                IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE name = N'IsCover' AND object_id = OBJECT_ID(N'ProjectScreenshots'))
-                BEGIN
-                    ALTER TABLE ProjectScreenshots ADD IsCover bit NOT NULL CONSTRAINT DF_ProjectScreenshots_IsCover DEFAULT 0;
-                END
-            ");
-
+            logger.LogInformation("Veritabanı migration''ları kontrol ediliyor ve uygulanıyor...");
             await db.Database.MigrateAsync();
-            logger.LogInformation("Veritabanı migration'ları başarıyla uygulandı.");
+            logger.LogInformation("Veritabanı migration''ları başarıyla uygulandı.");
         }
+
         var seeder = services.GetRequiredService<DataSeeder>();
-        await seeder.SeedAsync(app.Environment.IsDevelopment());
+        await seeder.SeedAsync();
         logger.LogInformation("Başlangıç rolleri ve verileri kontrol edildi.");
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Veritabanı migration veya tohumlama sırasında hata alındı: {Message}", ex.Message);
+        var logger2 = services.GetRequiredService<ILogger<Program>>();
+        logger2.LogCritical(ex, "Veritabanı migration veya tohumlama sırasında kritik hata: {Message}", ex.Message);
+        // Migration hatası uygulamanın "hazır" duruma geçmesini engeller
+        throw;
     }
 }
 

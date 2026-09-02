@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -12,12 +12,10 @@ namespace PSL.ProjectHub.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
-    private readonly IWebHostEnvironment _env;
 
-    public AuthController(IAuthService authService, IWebHostEnvironment env)
+    public AuthController(IAuthService authService)
     {
         _authService = authService;
-        _env = env;
     }
 
     [HttpPost("login")]
@@ -26,22 +24,19 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         if (!ModelState.IsValid)
-        {
             return BadRequest(ModelState);
-        }
 
         try
         {
             var response = await _authService.LoginAsync(request);
             if (response == null)
-            {
                 return Unauthorized(new { message = "Geçersiz kullanıcı adı veya şifre." });
-            }
 
             return Ok(response);
         }
         catch (InvalidOperationException ex)
         {
+            // 423 Locked: hesap kilitlenme durumu — kullanıcı adını ifşa etmez
             return StatusCode(423, new { message = ex.Message });
         }
     }
@@ -58,28 +53,6 @@ public class AuthController : ControllerBase
         var fullName = User.FindFirst("FullName")?.Value ?? username;
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
 
-        return Ok(new
-        {
-            username,
-            fullName,
-            email,
-            roles
-        });
-    }
-
-    /// <summary>
-    /// Yalnızca Development ortamında kullanılabilen, başlangıç tohumlama uç noktası.
-    /// Üretim ortamında kesinlikle anonim kullanıcı oluşturulamaz.
-    /// </summary>
-    [HttpPost("seed")]
-    public async Task<IActionResult> Seed()
-    {
-        if (!_env.IsDevelopment())
-        {
-            return NotFound(new { message = "Bu işlem üretim ortamında güvenlik nedeniyle devre dışıdır." });
-        }
-
-        await _authService.SeedDefaultUsersAndRolesAsync();
-        return Ok(new { message = "Geliştirme ortamı verileri başarıyla tohumlandı." });
+        return Ok(new { username, fullName, email, roles });
     }
 }
