@@ -43,3 +43,7 @@ yarn-error.log*
 *.db-wal
 appsettings.Production.json
 secrets.json
+
+# Local agent & workspace artifacts
+.agents/
+GEMINI.md
