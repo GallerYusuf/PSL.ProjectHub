@@ -57,6 +57,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   // Link Modal
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<ProjectLinkDto | null>(null);
+  const [linkToDelete, setLinkToDelete] = useState<ProjectLinkDto | null>(null);
 
   // Screenshot Fullscreen Lightbox & Upload Modal
   const [activeScreenshotIndex, setActiveScreenshotIndex] = useState<number | null>(null);
@@ -124,13 +125,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   };
 
   const handleDeleteLink = async (linkId: string) => {
-    if (confirm('Bu bağlantıyı pasife almak istediğinizden emin misiniz?')) {
-      try {
-        await api.deleteOrDeactivateLink(linkId, false);
-        await loadProject();
-      } catch (err: any) {
-        alert(err.message || 'Bağlantı silinemedi.');
-      }
+    try {
+      await api.deleteOrDeactivateLink(linkId, false);
+      setLinkToDelete(null);
+      await loadProject();
+    } catch (err: any) {
+      alert(err.message || 'Bağlantı silinemedi.');
     }
   };
 
@@ -643,7 +643,11 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
                             <button
                               className="btn btn-ghost btn-sm"
-                              onClick={() => handleDeleteLink(link.id)}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setLinkToDelete(link);
+                              }}
                               title="Pasife Al"
                               style={{ color: 'var(--status-maint)' }}
                             >
@@ -952,6 +956,42 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           project={project}
           onClose={() => setShowPresentation(false)}
         />
+      )}
+
+      {/* Delete Link Confirmation Modal */}
+      {linkToDelete && (
+        <div className="modal-backdrop">
+          <div className="modal" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h3 className="modal-title" style={{ color: 'var(--status-maint)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AlertCircle size={18} />
+                <span>Bağlantıyı Pasife Al</span>
+              </h3>
+              <button className="btn btn-ghost btn-sm" onClick={() => setLinkToDelete(null)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ padding: '1rem' }}>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                <strong>{linkToDelete.url}</strong> adresini pasife almak istediğinizden emin misiniz? 
+                <br /><br />
+                Pasife alınan bağlantılar URL envanterinde görünmez ancak veritabanında tutulmaya devam eder.
+              </p>
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '1rem' }}>
+              <button className="btn btn-ghost" onClick={() => setLinkToDelete(null)}>
+                Vazgeç
+              </button>
+              <button 
+                className="btn btn-primary" 
+                style={{ background: 'var(--status-maint)', borderColor: 'var(--status-maint)' }}
+                onClick={() => handleDeleteLink(linkToDelete.id)}
+              >
+                Evet, Pasife Al
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
