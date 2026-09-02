@@ -8,11 +8,16 @@ public class GlobalExceptionHandlerMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
+    private readonly IWebHostEnvironment _env;
 
-    public GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger)
+    public GlobalExceptionHandlerMiddleware(
+        RequestDelegate next,
+        ILogger<GlobalExceptionHandlerMiddleware> logger,
+        IWebHostEnvironment env)
     {
         _next = next;
         _logger = logger;
+        _env = env;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -23,12 +28,15 @@ public class GlobalExceptionHandlerMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "İstek işlenirken işlenmemiş bir hata meydana geldi: {Message}", ex.Message);
-            await HandleExceptionAsync(context, ex);
+            // Log sistemine ayrıntılı hata yazılır; şifre, token gibi hassas veriler loglanmaz
+            _logger.LogError(ex, "İstek işlenirken işlenmemiş bir hata meydana geldi. Yol: {Path}, TraceId: {TraceId}",
+                context.Request.Path, context.TraceIdentifier);
+
+            await HandleExceptionAsync(context, ex, _env);
         }
     }
 
-    private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static Task HandleExceptionAsync(HttpContext context, Exception exception, IWebHostEnvironment env)
     {
         context.Response.ContentType = "application/problem+json";
 
@@ -43,11 +51,24 @@ public class GlobalExceptionHandlerMiddleware
 
         context.Response.StatusCode = (int)statusCode;
 
+        // Üretim ortamında 500 hatalarında iç istisna detayları ve stack trace kullanıcıya kesinlikle gösterilmez
+        string detail;
+        if (statusCode == HttpStatusCode.InternalServerError)
+        {
+            detail = env.IsDevelopment()
+                ? exception.Message
+                : "İşlem sırasında beklenmeyen bir sunucu hatası oluştu. Lütfen sistem yöneticisiyle iletişime geçiniz.";
+        }
+        else
+        {
+            detail = exception.Message;
+        }
+
         var problemDetails = new ProblemDetails
         {
             Status = (int)statusCode,
             Title = title,
-            Detail = exception.Message,
+            Detail = detail,
             Instance = context.Request.Path
         };
 

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PSL.ProjectHub.Application.Interfaces;
 
@@ -5,6 +6,7 @@ namespace PSL.ProjectHub.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class SystemController : ControllerBase
 {
     private readonly IRepositoryMetadataProvider _repoProvider;

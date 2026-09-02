@@ -73,8 +73,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
             b.Property(l => l.Environment).HasConversion<string>().HasMaxLength(50);
             b.HasQueryFilter(l => !l.Project.IsArchived);
 
-            // Unique index per project & url to prevent accidental duplicate additions
-            b.HasIndex(l => new { l.ProjectId, l.Url });
+            // Aynı projede mükerrer URL eklenmesini veritabanı seviyesinde engelleyen unique index
+            b.HasIndex(l => new { l.ProjectId, l.Url }).IsUnique();
 
             b.HasOne(l => l.Project)
              .WithMany(p => p.Links)
@@ -141,6 +141,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
             b.Property(s => s.FileName).HasMaxLength(255).IsRequired();
             b.Property(s => s.FilePath).HasMaxLength(1000).IsRequired();
             b.Property(s => s.Caption).HasMaxLength(300);
+            b.Property(s => s.IsCover).HasDefaultValue(false);
             b.HasQueryFilter(s => !s.Project.IsArchived);
         });
     }

@@ -6,8 +6,8 @@ namespace PSL.ProjectHub.Application.Interfaces;
 public interface IProjectService
 {
     Task<List<ProjectSummaryDto>> GetAllProjectsAsync(string? search = null, ProjectStatus? status = null, string? category = null, string? technology = null, string? integration = null, string? owner = null, bool? onlyWithLiveUrl = null, string? sortBy = null, bool includeArchived = false, CancellationToken cancellationToken = default);
-    Task<ProjectDetailDto?> GetProjectBySlugAsync(string slug, CancellationToken cancellationToken = default);
-    Task<ProjectDetailDto?> GetProjectByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<ProjectDetailDto?> GetProjectBySlugAsync(string slug, bool includeInactiveLinks = false, CancellationToken cancellationToken = default);
+    Task<ProjectDetailDto?> GetProjectByIdAsync(Guid id, bool includeInactiveLinks = false, CancellationToken cancellationToken = default);
     Task<ProjectDetailDto> CreateProjectAsync(CreateProjectRequest request, CancellationToken cancellationToken = default);
     Task<ProjectDetailDto?> UpdateProjectAsync(Guid id, UpdateProjectRequest request, CancellationToken cancellationToken = default);
     Task<bool> ArchiveProjectAsync(Guid id, CancellationToken cancellationToken = default);

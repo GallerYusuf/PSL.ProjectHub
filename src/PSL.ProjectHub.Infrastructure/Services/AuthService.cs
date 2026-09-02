@@ -37,8 +37,21 @@ public class AuthService : IAuthService
 
         if (user == null) return null;
 
+        // Hesap kilitlenme kontrolü (Lockout)
+        if (await _userManager.IsLockedOutAsync(user))
+        {
+            throw new InvalidOperationException("Hesabınız çok sayıda hatalı giriş denemesi nedeniyle geçici olarak kilitlenmiştir. Lütfen daha sonra tekrar deneyiniz.");
+        }
+
         var isValidPassword = await _userManager.CheckPasswordAsync(user, request.Password);
-        if (!isValidPassword) return null;
+        if (!isValidPassword)
+        {
+            await _userManager.AccessFailedAsync(user);
+            return null;
+        }
+
+        // Başarılı girişte sayacı sıfırla
+        await _userManager.ResetAccessFailedCountAsync(user);
 
         var roles = await _userManager.GetRolesAsync(user);
 
@@ -55,13 +68,19 @@ public class AuthService : IAuthService
             claims.Add(new Claim(ClaimTypes.Role, role));
         }
 
-        var secret = _configuration["Jwt:Secret"] ?? "PSL_ProjectHub_Super_Secret_Key_For_Development_2026_Secure_Token!";
+        var secret = _configuration["Jwt:Secret"];
+        if (string.IsNullOrWhiteSpace(secret) || secret.Length < 32)
+        {
+            throw new InvalidOperationException("JWT Secret yapılandırması eksik veya güvensizdir (en az 32 karakter olmalıdır).");
+        }
+
         var issuer = _configuration["Jwt:Issuer"] ?? "PSLProjectHub";
         var audience = _configuration["Jwt:Audience"] ?? "PSLProjectHubAudience";
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var expiresAt = DateTime.UtcNow.AddDays(7);
+        // 8 saatlik çalışma oturum süresi
+        var expiresAt = DateTime.UtcNow.AddHours(8);
         var token = new JwtSecurityToken(
             issuer: issuer,
             audience: audience,

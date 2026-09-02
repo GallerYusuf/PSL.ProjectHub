@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using PSL.ProjectHub.Domain.Entities;
 using PSL.ProjectHub.Domain.Enums;
 using PSL.ProjectHub.Infrastructure.Identity;
@@ -11,25 +13,36 @@ public class DataSeeder
     private readonly AppDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
+    private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
+    private readonly Microsoft.Extensions.Logging.ILogger<DataSeeder> _logger;
 
     public DataSeeder(
         AppDbContext context,
         UserManager<ApplicationUser> userManager,
-        RoleManager<ApplicationRole> roleManager)
+        RoleManager<ApplicationRole> roleManager,
+        Microsoft.Extensions.Configuration.IConfiguration configuration,
+        Microsoft.Extensions.Logging.ILogger<DataSeeder> logger)
     {
         _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
+        _configuration = configuration;
+        _logger = logger;
     }
 
-    public async Task SeedAsync()
+    public async Task SeedAsync(bool isDevelopment = false)
     {
-        await SeedRolesAndUsersAsync();
+        await SeedRolesAndInitialAdminAsync(isDevelopment);
         await SeedTechnologiesAsync();
-        await SeedProjectsAsync();
+
+        // Üretim ortamında demo veriler otomatik eklenmez; sadece development ortamında tohumlanır
+        if (isDevelopment || _configuration.GetValue<bool>("Seed:EnableDemoProjects", false))
+        {
+            await SeedProjectsAsync();
+        }
     }
 
-    private async Task SeedRolesAndUsersAsync()
+    private async Task SeedRolesAndInitialAdminAsync(bool isDevelopment)
     {
         string[] roles = ["Admin", "Viewer"];
         foreach (var role in roles)
@@ -40,44 +53,40 @@ public class DataSeeder
             }
         }
 
-        // Admin User
-        var adminEmail = "admin@gallerycrystal.com.tr";
-        var adminUser = await _userManager.FindByNameAsync("admin");
-        if (adminUser == null)
+        // İlk Admin kullanıcısının oluşturulması: Şifre kesinlikle kaynak kodda saklanmaz.
+        // Ortam değişkeni (PSL_INITIAL_ADMIN_PASSWORD) veya güvenli configuration / user-secrets üzerinden okunur.
+        var adminPassword = _configuration["InitialAdmin:Password"]
+            ?? Environment.GetEnvironmentVariable("PSL_INITIAL_ADMIN_PASSWORD");
+
+        if (!string.IsNullOrWhiteSpace(adminPassword))
         {
-            adminUser = new ApplicationUser
+            var adminUser = await _userManager.FindByNameAsync("admin");
+            if (adminUser == null)
             {
-                UserName = "admin",
-                Email = adminEmail,
-                FullName = "Sistem Yöneticisi",
-                Department = "Bilgi İşlem",
-                EmailConfirmed = true
-            };
-            var result = await _userManager.CreateAsync(adminUser, "Admin123!*");
-            if (result.Succeeded)
-            {
-                await _userManager.AddToRoleAsync(adminUser, "Admin");
+                var adminEmail = _configuration["InitialAdmin:Email"] ?? "admin@gallerycrystal.com.tr";
+                adminUser = new ApplicationUser
+                {
+                    UserName = "admin",
+                    Email = adminEmail,
+                    FullName = "Sistem Yöneticisi",
+                    Department = "Bilgi İşlem",
+                    EmailConfirmed = true
+                };
+                var result = await _userManager.CreateAsync(adminUser, adminPassword);
+                if (result.Succeeded)
+                {
+                    await _userManager.AddToRoleAsync(adminUser, "Admin");
+                    _logger.LogInformation("İlk Admin kullanıcısı yapılandırılan güvenli parola ile başarıyla oluşturuldu.");
+                }
+                else
+                {
+                    _logger.LogWarning("Admin kullanıcısı oluşturulurken hata: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
             }
         }
-
-        // Viewer User
-        var viewerEmail = "viewer@gallerycrystal.com.tr";
-        var viewerUser = await _userManager.FindByNameAsync("viewer");
-        if (viewerUser == null)
+        else
         {
-            viewerUser = new ApplicationUser
-            {
-                UserName = "viewer",
-                Email = viewerEmail,
-                FullName = "İzleyici Kullanıcı",
-                Department = "Yönetim",
-                EmailConfirmed = true
-            };
-            var result = await _userManager.CreateAsync(viewerUser, "Viewer123!*");
-            if (result.Succeeded)
-            {
-                await _userManager.AddToRoleAsync(viewerUser, "Viewer");
-            }
+            _logger.LogInformation("InitialAdmin parolası yapılandırılmamış. İlk admin hesabı CLI veya ortam değişkeni ile oluşturulabilir.");
         }
     }
 
@@ -131,7 +140,7 @@ public class DataSeeder
                 BusinessValue = "Mevzuata %100 uyum, doğrulanmış müşteri veritabanı ve anlık SMS kampanyaları ile satış artışı.",
                 Category = "Satış & Pazarlama",
                 Status = ProjectStatus.Live,
-                IsVerified = true,
+                IsVerified = false,
                 OwnerName = "İbrahim Çevik",
                 Department = "Yazılım Geliştirme",
                 TargetUsers = "Mağaza Satış Personeli, Pazarlama Departmanı",
@@ -248,7 +257,7 @@ public class DataSeeder
                 ShortDescription = "Gallery Crystal mağaza müşteri portalı ve kurumsal web arayüzü.",
                 Category = "E-Ticaret & Web",
                 Status = ProjectStatus.Live,
-                IsVerified = true,
+                IsVerified = false,
                 Department = "Pazarlama & E-Ticaret",
                 CurrentVersion = "v1.0.4",
                 CreatedAt = DateTime.UtcNow
@@ -286,7 +295,7 @@ public class DataSeeder
                 ShortDescription = "Şirket içi BT servis ve destek taleplerinin yönetildiği merkezi portal.",
                 Category = "Bilgi Teknolojileri",
                 Status = ProjectStatus.Live,
-                IsVerified = true,
+                IsVerified = false,
                 Department = "Bilgi İşlem",
                 CurrentVersion = "v2.0.1",
                 CreatedAt = DateTime.UtcNow
@@ -310,7 +319,7 @@ public class DataSeeder
                 BusinessValue = "Mağaza satış dönüşüm oranında artış, müşteri bekleme sürelerinde %70 azalma.",
                 Category = "Mağazacılık & Stok",
                 Status = ProjectStatus.Live,
-                IsVerified = true,
+                IsVerified = false,
                 OwnerName = "Yusuf Emre Deniz",
                 Department = "Yazılım Geliştirme",
                 TargetUsers = "Emilio Mağaza Satış Danışmanları, Depo Görevlileri",
@@ -338,7 +347,7 @@ public class DataSeeder
                 ShortDescription = "Yurt dışı taşınma sürecini hedef tarihe göre kişiselleştirilmiş görev yol haritasına dönüştüren süreç takip platformu.",
                 Category = "Operasyon",
                 Status = ProjectStatus.Development,
-                IsVerified = true,
+                IsVerified = false,
                 OwnerName = "Yusuf Emre Deniz",
                 Department = "Yazılım Geliştirme",
                 CurrentVersion = "v1.0.0-alpha",
@@ -362,7 +371,7 @@ public class DataSeeder
                 ShortDescription = "Gallery Crystal müşteri sadakat programı, kampanya ve iletişim altyapısı.",
                 Category = "Sadakat & Müşteri",
                 Status = ProjectStatus.Live,
-                IsVerified = true,
+                IsVerified = false,
                 OwnerName = "İbrahim Çevik",
                 Department = "Yazılım Geliştirme",
                 CurrentVersion = "v2.0.0",

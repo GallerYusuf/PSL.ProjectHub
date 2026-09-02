@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using PSL.ProjectHub.Domain.Enums;
 
 namespace PSL.ProjectHub.Application.DTOs;
@@ -50,21 +51,50 @@ public class ProjectDetailDto : ProjectSummaryDto
 
 public class CreateProjectRequest
 {
+    [Required(ErrorMessage = "Proje adı zorunludur.")]
+    [MaxLength(200, ErrorMessage = "Proje adı en fazla 200 karakter olabilir.")]
     public string Name { get; set; } = string.Empty;
+
+    [MaxLength(200, ErrorMessage = "Proje anahtarı (slug) en fazla 200 karakter olabilir.")]
     public string? Slug { get; set; }
+
+    [Required(ErrorMessage = "Kısa açıklama zorunludur.")]
+    [MaxLength(500, ErrorMessage = "Kısa açıklama en fazla 500 karakter olabilir.")]
     public string ShortDescription { get; set; } = string.Empty;
+
+    [MaxLength(2000, ErrorMessage = "İş problemi açıklaması en fazla 2000 karakter olabilir.")]
     public string? BusinessProblem { get; set; }
+
+    [MaxLength(2000, ErrorMessage = "Çözüm açıklaması en fazla 2000 karakter olabilir.")]
     public string? BusinessSolution { get; set; }
+
+    [MaxLength(2000, ErrorMessage = "Şirket değeri açıklaması en fazla 2000 karakter olabilir.")]
     public string? BusinessValue { get; set; }
+
+    [Required(ErrorMessage = "Kategori alanı zorunludur.")]
+    [MaxLength(100, ErrorMessage = "Kategori en fazla 100 karakter olabilir.")]
     public string Category { get; set; } = "Genel";
+
+    [Required(ErrorMessage = "Proje durumu zorunludur.")]
     public ProjectStatus Status { get; set; } = ProjectStatus.Development;
+
     public bool IsVerified { get; set; } = false;
+
+    [MaxLength(150, ErrorMessage = "Sorumlu kişi/ekip adı en fazla 150 karakter olabilir.")]
     public string? OwnerName { get; set; }
+
+    [MaxLength(150, ErrorMessage = "Departman adı en fazla 150 karakter olabilir.")]
     public string? Department { get; set; }
+
+    [MaxLength(250, ErrorMessage = "Hedef kullanıcılar en fazla 250 karakter olabilir.")]
     public string? TargetUsers { get; set; }
+
     public DateTime? StartDate { get; set; }
     public DateTime? LiveDate { get; set; }
+
+    [MaxLength(50, ErrorMessage = "Sürüm bilgisi en fazla 50 karakter olabilir.")]
     public string? CurrentVersion { get; set; }
+
     public List<string> Technologies { get; set; } = new();
 }
 
@@ -98,10 +128,21 @@ public class ProjectLinkDto
 public class CreateLinkRequest
 {
     public Guid? ProjectComponentId { get; set; }
+
+    [Required(ErrorMessage = "Bağlantı başlığı/etiketi zorunludur.")]
+    [MaxLength(150, ErrorMessage = "Bağlantı etiketi en fazla 150 karakter olabilir.")]
     public string Label { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "URL adresi zorunludur.")]
+    [MaxLength(1000, ErrorMessage = "URL adresi en fazla 1000 karakter olabilir.")]
     public string Url { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Bağlantı türü zorunludur.")]
     public LinkType LinkType { get; set; } = LinkType.Production;
+
+    [Required(ErrorMessage = "Ortam türü zorunludur.")]
     public EnvironmentType Environment { get; set; } = EnvironmentType.Production;
+
     public bool IsPrimary { get; set; } = false;
     public bool RequiresVpn { get; set; } = false;
     public bool RequiresAuthentication { get; set; } = false;
@@ -118,11 +159,20 @@ public class ProjectComponentDto
 {
     public Guid Id { get; set; }
     public Guid ProjectId { get; set; }
+
+    [Required(ErrorMessage = "Bileşen adı zorunludur.")]
+    [MaxLength(150, ErrorMessage = "Bileşen adı en fazla 150 karakter olabilir.")]
     public string Name { get; set; } = string.Empty;
+
     public ComponentType ComponentType { get; set; }
     public string ComponentTypeText => ComponentType.ToString();
+
+    [MaxLength(500, ErrorMessage = "Bileşen açıklaması en fazla 500 karakter olabilir.")]
     public string? Description { get; set; }
+
+    [MaxLength(50, ErrorMessage = "Ortam adı en fazla 50 karakter olabilir.")]
     public string? Environment { get; set; }
+
     public int DisplayOrder { get; set; }
 }
 
@@ -133,7 +183,16 @@ public class ProjectScreenshotDto
     public string FileName { get; set; } = string.Empty;
     public string FilePath { get; set; } = string.Empty;
     public string? Caption { get; set; }
+    public bool IsCover { get; set; } = false;
     public int DisplayOrder { get; set; }
+}
+
+public class UpdateScreenshotRequest
+{
+    [MaxLength(300, ErrorMessage = "Açıklama en fazla 300 karakter olabilir.")]
+    public string? Caption { get; set; }
+    public bool IsCover { get; set; } = false;
+    public int DisplayOrder { get; set; } = 0;
 }
 
 public class ProjectIntegrationDto
@@ -219,7 +278,10 @@ public class UrlImportResultDto
 
 public class LoginRequest
 {
+    [Required(ErrorMessage = "Kullanıcı adı veya e-posta alanı zorunludur.")]
     public string Username { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Şifre alanı zorunludur.")]
     public string Password { get; set; } = string.Empty;
 }
 

@@ -77,6 +77,10 @@ public class ProjectScreenshot
     public string FileName { get; set; } = string.Empty;
     public string FilePath { get; set; } = string.Empty;
     public string? Caption { get; set; }
+    /// <summary>
+    /// Projenin birincil/kapak ekran görüntüsü olup olmadığını belirtir.
+    /// </summary>
+    public bool IsCover { get; set; } = false;
     public int DisplayOrder { get; set; } = 0;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

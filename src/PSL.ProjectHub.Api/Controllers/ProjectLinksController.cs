@@ -6,6 +6,7 @@ using PSL.ProjectHub.Application.Interfaces;
 namespace PSL.ProjectHub.Api.Controllers;
 
 [ApiController]
+[Authorize]
 public class ProjectLinksController : ControllerBase
 {
     private readonly IProjectLinkService _linkService;
@@ -16,9 +17,14 @@ public class ProjectLinksController : ControllerBase
     }
 
     [HttpGet("api/projects/{projectId:guid}/links")]
-    public async Task<ActionResult<List<ProjectLinkDto>>> GetProjectLinks(Guid projectId, [FromQuery] bool includeInactive = false, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<List<ProjectLinkDto>>> GetProjectLinks(
+        Guid projectId,
+        [FromQuery] bool includeInactive = false,
+        CancellationToken cancellationToken = default)
     {
-        var links = await _linkService.GetLinksByProjectIdAsync(projectId, includeInactive, cancellationToken);
+        // Normal kullanıcılar ve Viewer rolü yalnızca aktif bağlantıları görebilir
+        var canSeeInactive = includeInactive && User.IsInRole("Admin");
+        var links = await _linkService.GetLinksByProjectIdAsync(projectId, canSeeInactive, cancellationToken);
         return Ok(links);
     }
 

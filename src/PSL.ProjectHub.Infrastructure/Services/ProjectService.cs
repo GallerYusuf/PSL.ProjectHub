@@ -96,11 +96,11 @@ public class ProjectService : IProjectService
         return projects.Select(MapToSummaryDto).ToList();
     }
 
-    public async Task<ProjectDetailDto?> GetProjectBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    public async Task<ProjectDetailDto?> GetProjectBySlugAsync(string slug, bool includeInactiveLinks = false, CancellationToken cancellationToken = default)
     {
         var project = await _context.Projects
             .Include(p => p.Components)
-            .Include(p => p.Links)
+            .Include(p => p.Links.Where(l => includeInactiveLinks || l.IsActive))
             .Include(p => p.Screenshots)
             .Include(p => p.Integrations)
             .Include(p => p.Releases)
@@ -109,14 +109,14 @@ public class ProjectService : IProjectService
                 .ThenInclude(pt => pt.Technology)
             .FirstOrDefaultAsync(p => p.Slug == slug, cancellationToken);
 
-        return project == null ? null : MapToDetailDto(project);
+        return project == null ? null : MapToDetailDto(project, includeInactiveLinks);
     }
 
-    public async Task<ProjectDetailDto?> GetProjectByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ProjectDetailDto?> GetProjectByIdAsync(Guid id, bool includeInactiveLinks = false, CancellationToken cancellationToken = default)
     {
         var project = await _context.Projects
             .Include(p => p.Components)
-            .Include(p => p.Links)
+            .Include(p => p.Links.Where(l => includeInactiveLinks || l.IsActive))
             .Include(p => p.Screenshots)
             .Include(p => p.Integrations)
             .Include(p => p.Releases)
@@ -125,7 +125,7 @@ public class ProjectService : IProjectService
                 .ThenInclude(pt => pt.Technology)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
-        return project == null ? null : MapToDetailDto(project);
+        return project == null ? null : MapToDetailDto(project, includeInactiveLinks);
     }
 
     public async Task<ProjectDetailDto> CreateProjectAsync(CreateProjectRequest request, CancellationToken cancellationToken = default)
@@ -180,13 +180,14 @@ public class ProjectService : IProjectService
         _context.Projects.Add(project);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return MapToDetailDto(project);
+        return MapToDetailDto(project, includeInactiveLinks: true);
     }
 
     public async Task<ProjectDetailDto?> UpdateProjectAsync(Guid id, UpdateProjectRequest request, CancellationToken cancellationToken = default)
     {
         var project = await _context.Projects
             .Include(p => p.ProjectTechnologies)
+                .ThenInclude(pt => pt.Technology)
             .Include(p => p.Components)
             .Include(p => p.Links)
             .Include(p => p.Screenshots)
@@ -225,8 +226,59 @@ public class ProjectService : IProjectService
             }
         }
 
+        // Teknoloji ilişkilerinin doğru senkronizasyonu
+        if (request.Technologies != null)
+        {
+            var targetTechNames = request.Technologies
+                .Where(t => !string.IsNullOrWhiteSpace(t))
+                .Select(t => t.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            // Kaldırılan teknolojileri temizle
+            var toRemove = project.ProjectTechnologies
+                .Where(pt => pt.Technology != null && !targetTechNames.Contains(pt.Technology.Name, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+
+            foreach (var rm in toRemove)
+            {
+                project.ProjectTechnologies.Remove(rm);
+                _context.ProjectTechnologies.Remove(rm);
+            }
+
+            // Yeni eklenen teknolojileri ekle
+            var currentTechNames = project.ProjectTechnologies
+                .Where(pt => pt.Technology != null)
+                .Select(pt => pt.Technology.Name)
+                .ToList();
+
+            foreach (var techName in targetTechNames)
+            {
+                if (!currentTechNames.Contains(techName, StringComparer.OrdinalIgnoreCase))
+                {
+                    var tech = await _context.Technologies
+                        .FirstOrDefaultAsync(t => t.Name.ToLower() == techName.ToLower(), cancellationToken);
+
+                    if (tech == null)
+                    {
+                        tech = new Technology { Name = techName, Category = TechnologyCategory.Backend };
+                        _context.Technologies.Add(tech);
+                        await _context.SaveChangesAsync(cancellationToken);
+                    }
+
+                    project.ProjectTechnologies.Add(new ProjectTechnology
+                    {
+                        ProjectId = project.Id,
+                        Project = project,
+                        TechnologyId = tech.Id,
+                        Technology = tech
+                    });
+                }
+            }
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
-        return MapToDetailDto(project);
+        return MapToDetailDto(project, includeInactiveLinks: true);
     }
 
     public async Task<bool> ArchiveProjectAsync(Guid id, CancellationToken cancellationToken = default)
@@ -354,14 +406,14 @@ public class ProjectService : IProjectService
             CreatedAt = p.CreatedAt,
             UpdatedAt = p.UpdatedAt,
             IsArchived = p.IsArchived,
-            Technologies = p.ProjectTechnologies.Select(pt => pt.Technology.Name).ToList(),
+            Technologies = p.ProjectTechnologies.Where(pt => pt.Technology != null).Select(pt => pt.Technology.Name).ToList(),
             PrimaryLink = primary == null ? null : MapToLinkDto(primary),
             HasVpnLink = activeLinks.Any(l => l.RequiresVpn),
             ActiveLinksCount = activeLinks.Count
         };
     }
 
-    private static ProjectDetailDto MapToDetailDto(Project p)
+    private static ProjectDetailDto MapToDetailDto(Project p, bool includeInactiveLinks = false)
     {
         var summary = MapToSummaryDto(p);
         return new ProjectDetailDto
@@ -385,7 +437,7 @@ public class ProjectService : IProjectService
             CreatedAt = p.CreatedAt,
             UpdatedAt = p.UpdatedAt,
             IsArchived = p.IsArchived,
-            Technologies = p.ProjectTechnologies.Select(pt => pt.Technology.Name).ToList(),
+            Technologies = p.ProjectTechnologies.Where(pt => pt.Technology != null).Select(pt => pt.Technology.Name).ToList(),
             PrimaryLink = summary.PrimaryLink,
             HasVpnLink = summary.HasVpnLink,
             ActiveLinksCount = summary.ActiveLinksCount,
@@ -399,7 +451,7 @@ public class ProjectService : IProjectService
                 Environment = c.Environment,
                 DisplayOrder = c.DisplayOrder
             }).ToList(),
-            Links = p.Links.OrderBy(l => l.DisplayOrder).Select(MapToLinkDto).ToList(),
+            Links = p.Links.Where(l => includeInactiveLinks || l.IsActive).OrderBy(l => l.DisplayOrder).Select(MapToLinkDto).ToList(),
             Screenshots = p.Screenshots.OrderBy(s => s.DisplayOrder).Select(s => new ProjectScreenshotDto
             {
                 Id = s.Id,
@@ -407,6 +459,7 @@ public class ProjectService : IProjectService
                 FileName = s.FileName,
                 FilePath = s.FilePath,
                 Caption = s.Caption,
+                IsCover = s.IsCover,
                 DisplayOrder = s.DisplayOrder
             }).ToList(),
             Integrations = p.Integrations.Select(i => new ProjectIntegrationDto

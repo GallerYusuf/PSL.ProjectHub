@@ -8,6 +8,7 @@ namespace PSL.ProjectHub.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ProjectsController : ControllerBase
 {
     private readonly IProjectService _projectService;
@@ -30,22 +31,31 @@ public class ProjectsController : ControllerBase
         [FromQuery] bool includeArchived = false,
         CancellationToken cancellationToken = default)
     {
+        // Yalnızca Admin rolündeki kullanıcılar arşivlenmiş projeleri listeleyebilir
+        var canIncludeArchived = includeArchived && User.IsInRole("Admin");
+
         var projects = await _projectService.GetAllProjectsAsync(
-            search, status, category, technology, integration, owner, onlyWithLiveUrl, sortBy, includeArchived, cancellationToken);
+            search, status, category, technology, integration, owner, onlyWithLiveUrl, sortBy, canIncludeArchived, cancellationToken);
         return Ok(projects);
     }
 
     [HttpGet("{identifier}")]
-    public async Task<ActionResult<ProjectDetailDto>> GetProject(string identifier, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<ProjectDetailDto>> GetProject(
+        string identifier,
+        [FromQuery] bool includeInactive = false,
+        CancellationToken cancellationToken = default)
     {
+        // Yalnızca Admin rolü pasif bağlantıları görebilir
+        var canSeeInactive = includeInactive && User.IsInRole("Admin");
+
         ProjectDetailDto? project;
         if (Guid.TryParse(identifier, out var id))
         {
-            project = await _projectService.GetProjectByIdAsync(id, cancellationToken);
+            project = await _projectService.GetProjectByIdAsync(id, canSeeInactive, cancellationToken);
         }
         else
         {
-            project = await _projectService.GetProjectBySlugAsync(identifier, cancellationToken);
+            project = await _projectService.GetProjectBySlugAsync(identifier, canSeeInactive, cancellationToken);
         }
 
         if (project == null)

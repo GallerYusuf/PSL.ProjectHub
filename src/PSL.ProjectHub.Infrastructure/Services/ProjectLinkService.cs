@@ -88,7 +88,14 @@ public class ProjectLinkService : IProjectLinkService
 
         _context.ProjectLinks.Add(link);
         project.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            throw new InvalidOperationException($"Bu URL adresi ('{normalizedUrl}') bu projede zaten kayıtlıdır.");
+        }
 
         return ProjectService.MapToLinkDto(link);
     }
@@ -149,7 +156,15 @@ public class ProjectLinkService : IProjectLinkService
             project.UpdatedAt = DateTime.UtcNow;
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            throw new InvalidOperationException($"Bu URL adresi ('{normalizedUrl}') bu projede zaten başka bir bağlantıda kayıtlıdır.");
+        }
+
         return ProjectService.MapToLinkDto(link);
     }
 
