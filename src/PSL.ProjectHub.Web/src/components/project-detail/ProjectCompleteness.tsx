@@ -2,7 +2,7 @@ import React from 'react';
 import { ListChecks } from 'lucide-react';
 import { ProjectDetailDto } from '../../types';
 
-export type CompletenessAction = 'edit' | 'links' | 'screenshot';
+export type CompletenessAction = 'edit' | 'links' | 'screenshot' | 'impact';
 
 interface CheckItem {
   label: string;
@@ -13,10 +13,11 @@ interface CheckItem {
 }
 
 /** Bir projenin sunuma hazır olması için doldurulması gereken alanları değerlendirir. */
-export function evaluateCompleteness(project: ProjectDetailDto): CheckItem[] {
+export function evaluateCompleteness(project: ProjectDetailDto, metricsCount = 0): CheckItem[] {
   const has = (v?: string | null) => !!v && v.trim().length > 0;
   return [
     { label: 'Ana bağlantı', done: (project.links ?? []).some(l => l.isActive !== false), action: 'links' },
+    { label: 'Etki rakamı', done: metricsCount > 0, action: 'impact' },
     { label: 'Çözülen iş problemi', done: has(project.businessProblem), action: 'edit', field: 'project-problem' },
     { label: 'Getirilen çözüm', done: has(project.businessSolution), action: 'edit', field: 'project-solution' },
     { label: 'Şirkete değeri', done: has(project.businessValue), action: 'edit', field: 'project-value' },
@@ -29,14 +30,15 @@ export function evaluateCompleteness(project: ProjectDetailDto): CheckItem[] {
 
 interface ProjectCompletenessProps {
   project: ProjectDetailDto;
+  metricsCount?: number;
   onAction: (action: CompletenessAction, field?: string) => void;
 }
 
 /**
  * Yöneticiye eksik alanları gösteren ilerleme kartı. Proje tamamlandığında görünmez.
  */
-export const ProjectCompleteness: React.FC<ProjectCompletenessProps> = ({ project, onAction }) => {
-  const items = evaluateCompleteness(project);
+export const ProjectCompleteness: React.FC<ProjectCompletenessProps> = ({ project, metricsCount = 0, onAction }) => {
+  const items = evaluateCompleteness(project, metricsCount);
   const missing = items.filter(i => !i.done);
   if (missing.length === 0) return null;
 

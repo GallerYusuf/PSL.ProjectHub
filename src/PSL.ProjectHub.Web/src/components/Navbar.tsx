@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Layers, LayoutDashboard, FolderGit2, ShieldCheck, LogIn, LogOut, UserCheck, PlaySquare, Search } from 'lucide-react';
+import { Layers, LayoutDashboard, FolderGit2, ShieldCheck, LogIn, LogOut, UserCheck, PlaySquare, Search, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BrandMark, useBranding } from '../context/BrandingContext';
 
 interface NavbarProps {
-  currentTab: 'dashboard' | 'projects' | 'admin' | 'login';
-  onSelectTab: (tab: 'dashboard' | 'projects' | 'admin' | 'login') => void;
+  currentTab: 'dashboard' | 'projects' | 'team' | 'admin' | 'login';
+  onSelectTab: (tab: 'dashboard' | 'projects' | 'team' | 'admin' | 'login') => void;
   onOpenPresentation?: () => void;
   onSearchSubmit?: (query: string) => void;
 }
@@ -92,6 +92,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               >
                 <FolderGit2 size={15} />
                 <span>Projeler</span>
+              </button>
+
+              <button
+                className={`nav-link ${currentTab === 'team' ? 'active' : ''}`}
+                onClick={() => onSelectTab('team')}
+              >
+                <Users size={15} />
+                <span>Ekip</span>
               </button>
 
               {isAdmin && (

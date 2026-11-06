@@ -6,7 +6,12 @@ import {
   ProjectScreenshotDto,
   ProjectStatus,
   AuthUser,
-  OrganizationSettings
+  OrganizationSettings,
+  ImpactSummaryDto,
+  ProjectMetricDto,
+  ProjectMetricInput,
+  TeamMemberDto,
+  ProjectMemberDto
 } from '../types';
 
 const API_BASE = '/api';
@@ -69,6 +74,55 @@ export const api = {
   // Setup (ilk kurulum)
   async getSetupStatus(): Promise<{ isInitialized: boolean; message: string }> {
     return request('/setup/status');
+  },
+
+  // Etki metrikleri
+  async getImpactSummary(): Promise<ImpactSummaryDto> {
+    return request('/impact/summary');
+  },
+
+  async getProjectMetrics(projectId: string): Promise<ProjectMetricDto[]> {
+    return request(`/projects/${projectId}/metrics`);
+  },
+
+  async createMetric(projectId: string, data: ProjectMetricInput): Promise<ProjectMetricDto> {
+    return request(`/projects/${projectId}/metrics`, { method: 'POST', body: JSON.stringify(data) });
+  },
+
+  async updateMetric(id: string, data: ProjectMetricInput): Promise<ProjectMetricDto> {
+    return request(`/metrics/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  },
+
+  async deleteMetric(id: string): Promise<void> {
+    await request(`/metrics/${id}`, { method: 'DELETE' });
+  },
+
+  // Ekip
+  async getTeam(): Promise<TeamMemberDto[]> {
+    return request('/team');
+  },
+
+  async updateTeamMember(id: string, data: { fullName: string; title?: string; email?: string; isActive: boolean }): Promise<TeamMemberDto> {
+    return request(`/team/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  },
+
+  async deleteTeamMember(id: string): Promise<void> {
+    await request(`/team/${id}`, { method: 'DELETE' });
+  },
+
+  async getProjectTeam(projectId: string): Promise<ProjectMemberDto[]> {
+    return request(`/projects/${projectId}/team`);
+  },
+
+  async assignProjectMember(
+    projectId: string,
+    data: { teamMemberId?: string; newMemberName?: string; newMemberTitle?: string; role: string; isLead: boolean }
+  ): Promise<ProjectMemberDto> {
+    return request(`/projects/${projectId}/team`, { method: 'POST', body: JSON.stringify(data) });
+  },
+
+  async removeProjectMember(projectId: string, memberId: string): Promise<void> {
+    await request(`/projects/${projectId}/team/${memberId}`, { method: 'DELETE' });
   },
 
   // Firma ayarları

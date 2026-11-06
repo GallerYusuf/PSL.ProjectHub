@@ -11,7 +11,8 @@ import {
   FileText
 } from 'lucide-react';
 import { api } from '../api/client';
-import { DashboardMetricsDto, ProjectSummaryDto } from '../types';
+import { DashboardMetricsDto, ImpactSummaryDto, ProjectSummaryDto } from '../types';
+import { formatCompact, formatNumber } from '../utils/impact';
 import { useBranding } from '../context/BrandingContext';
 
 interface DashboardPageProps {
@@ -27,6 +28,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 }) => {
   const { branding } = useBranding();
   const [metrics, setMetrics] = useState<DashboardMetricsDto | null>(null);
+  const [impact, setImpact] = useState<ImpactSummaryDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,8 +40,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const data = await api.getDashboardMetrics();
+      const [data, impactSummary] = await Promise.all([
+        api.getDashboardMetrics(),
+        api.getImpactSummary().catch(() => null),
+      ]);
       setMetrics(data);
+      setImpact(impactSummary);
     } catch (err: any) {
       setError(err.message || 'Dashboard verileri yüklenirken bir hata oluştu.');
     } finally {
@@ -101,6 +107,51 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       </div>
 
       {/* Yüksek Bilgi Yoğunluklu Tek Satır Metrik Şeridi */}
+      {/* Ekibin toplam iş etkisi */}
+      {impact && (
+        <section className="card" aria-labelledby="impact-strip-title" style={{ padding: '1.25rem', marginBottom: '1rem', borderTop: '3px solid var(--primary)' }}>
+          <h2 id="impact-strip-title" style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)', margin: '0 0 0.85rem' }}>
+            Ekibin Şirkete Kazandırdıkları
+          </h2>
+          {impact.projectsWithMetrics === 0 ? (
+            <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', margin: 0 }}>
+              Henüz etki rakamı girilmedi. Proje sayfalarındaki "İş Etkisi" bölümüne kazanılan zamanı, kullanıcı sayısını
+              veya tasarrufu girdiğinizde toplamlar burada görünür.
+            </p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '1rem', alignItems: 'start' }}>
+              {[
+                { value: impact.hoursSavedPerMonth, unit: 'saat / ay', label: 'manuel iş kaldırıldı' },
+                { value: impact.usersReached, unit: 'kullanıcı', label: 'sistemlerimizi kullanıyor' },
+                { value: impact.costSavingPerYear, unit: 'TL / yıl', label: 'tasarruf sağlandı' },
+              ].filter(s => s.value > 0).map(s => (
+                <div key={s.unit}>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--primary)', lineHeight: 1.1 }}>
+                    {formatCompact(s.value)} <span style={{ fontSize: '0.9rem', fontWeight: 700 }}>{s.unit}</span>
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>{s.label}</div>
+                </div>
+              ))}
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, gridColumn: 'span 2', minWidth: 0, display: 'grid', gap: '0.35rem' }} aria-label="Öne çıkan proje etkileri">
+                {impact.highlights.map(h => (
+                  <li key={h.projectId} style={{ fontSize: '0.84rem' }}>
+                    <button
+                      className="btn btn-ghost btn-sm"
+                      style={{ padding: 0, textAlign: 'left', whiteSpace: 'normal', fontWeight: 400 }}
+                      onClick={() => onViewDetails(h.projectSlug)}
+                    >
+                      <strong style={{ color: 'var(--text-primary)' }}>{h.projectName}:</strong>&nbsp;
+                      <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{formatNumber(h.value)} {h.unit}</span>&nbsp;
+                      <span style={{ color: 'var(--text-secondary)' }}>— {h.label}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
+
       <div className="metric-ribbon">
         <div className="metric-item">
           <span className="metric-label">Toplam Sistem</span>
@@ -270,10 +321,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                 <Share2 size={16} color="var(--status-pilot)" />
                 <span>Kritik Entegrasyonlar</span>
               </h2>
-              <span className="badge badge-demo">Demo / Simüle Veri</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {metrics.criticalIntegrations.length === 0 && (
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: 0 }}>
+                  Kritik olarak işaretlenmiş entegrasyon yok. Proje sayfasının Teknik sekmesinden eklenebilir.
+                </p>
+              )}
               {metrics.criticalIntegrations.map((ci) => (
                 <div
                   key={ci.id}

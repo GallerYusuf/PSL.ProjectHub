@@ -4,6 +4,63 @@ export type EnvironmentType = 'Production' | 'Test' | 'Development' | 'Internal'
 export type ComponentType = 'API' | 'Web' | 'Gateway' | 'Worker' | 'WindowsService' | 'ScheduledJob' | 'Other';
 export type NoteType = 'KnownIssue' | 'DevelopmentNote' | 'Decision' | 'FuturePlan';
 
+export type ImpactKind = 'TimeSaved' | 'Users' | 'CostSaving' | 'Volume' | 'Other';
+
+export interface ProjectMetricDto {
+  id: string;
+  projectId: string;
+  kind: ImpactKind;
+  label: string;
+  value: number;
+  unit: string;
+  note?: string;
+  displayOrder: number;
+}
+
+export interface ProjectMetricInput {
+  kind: ImpactKind;
+  label: string;
+  value: number;
+  unit?: string;
+  note?: string;
+  displayOrder?: number;
+}
+
+export interface ImpactHighlightDto {
+  projectId: string;
+  projectName: string;
+  projectSlug: string;
+  kind: ImpactKind;
+  label: string;
+  value: number;
+  unit: string;
+}
+
+export interface ImpactSummaryDto {
+  hoursSavedPerMonth: number;
+  usersReached: number;
+  costSavingPerYear: number;
+  projectsWithMetrics: number;
+  highlights: ImpactHighlightDto[];
+}
+
+export interface TeamMemberDto {
+  id: string;
+  fullName: string;
+  title?: string;
+  email?: string;
+  isActive: boolean;
+  projects: { projectId: string; projectName: string; projectSlug: string; role: string; isLead: boolean }[];
+}
+
+export interface ProjectMemberDto {
+  teamMemberId: string;
+  fullName: string;
+  title?: string;
+  role: string;
+  isLead: boolean;
+}
+
 /** Firma kimliği. directorName/directorTitle yalnızca oturum açıkken döner. */
 export interface OrganizationSettings {
   organizationName: string;

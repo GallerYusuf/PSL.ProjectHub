@@ -7,7 +7,8 @@ import {
   X
 } from "lucide-react";
 import { api } from "../api/client";
-import { ProjectDetailDto, ProjectLinkDto, ProjectScreenshotDto } from "../types";
+import { ProjectDetailDto, ProjectLinkDto, ProjectScreenshotDto, ProjectMetricDto, ProjectMemberDto } from "../types";
+import { ProjectImpactTeam } from "../components/project-detail/ProjectImpactTeam";
 import { useAuth } from "../context/AuthContext";
 import { AdminLinkModal } from "../components/AdminLinkModal";
 import { PresentationModal } from "../components/PresentationModal";
@@ -49,6 +50,21 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const [bulkLinkOpen, setBulkLinkOpen] = useState(false);
   const [editProjectOpen, setEditProjectOpen] = useState(false);
   const [editFocusField, setEditFocusField] = useState<string | undefined>(undefined);
+  const [metrics, setMetrics] = useState<ProjectMetricDto[]>([]);
+  const [members, setMembers] = useState<ProjectMemberDto[]>([]);
+
+  /** Etki/ekip değişikliklerinde sayfayı yükleme ekranına düşürmeden tazeler. */
+  const refreshImpactTeam = async () => {
+    if (!project) return;
+    const [projectMetrics, projectMembers, fresh] = await Promise.all([
+      api.getProjectMetrics(project.id),
+      api.getProjectTeam(project.id),
+      api.getProject(slug),
+    ]);
+    setMetrics(projectMetrics);
+    setMembers(projectMembers);
+    setProject(fresh);
+  };
 
   // Screenshot Yükleme Modalı
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -67,6 +83,12 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       setLoading(true);
       setError(null);
       const data = await api.getProject(slug);
+      const [projectMetrics, projectMembers] = await Promise.all([
+        api.getProjectMetrics(data.id).catch(() => []),
+        api.getProjectTeam(data.id).catch(() => []),
+      ]);
+      setMetrics(projectMetrics);
+      setMembers(projectMembers);
       setProject(data);
     } catch (err: any) {
       setError(err.message || "Proje detayları yüklenirken bir hata oluştu.");
@@ -234,16 +256,29 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       {isAdmin && (
         <ProjectCompleteness
           project={project}
+          metricsCount={metrics.length}
           onAction={(action: CompletenessAction, field?: string) => {
             if (action === "links") setBulkLinkOpen(true);
             else if (action === "screenshot") setUploadModalOpen(true);
-            else {
+            else if (action === "impact") {
+              document.getElementById("project-impact")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              (document.querySelector('[aria-label="Değer"]') as HTMLInputElement | null)?.focus({ preventScroll: true });
+            } else {
               setEditFocusField(field);
               setEditProjectOpen(true);
             }
           }}
         />
       )}
+
+      {/* İş Etkisi ve Ekip (direktör sunumunun ana bölümü) */}
+      <ProjectImpactTeam
+        projectId={project.id}
+        metrics={metrics}
+        members={members}
+        canEdit={isAdmin || isEditor}
+        onChanged={refreshImpactTeam}
+      />
 
       {/* URL Envanteri (Öncelikli Operasyonel Alan) */}
       <ProjectLinkInventory

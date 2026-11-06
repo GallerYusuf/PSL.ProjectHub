@@ -6,6 +6,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { AdminPage } from './pages/AdminPage';
+import { TeamPage } from './pages/TeamPage';
 import { LoginPage } from './pages/LoginPage';
 import SetupPage from './pages/SetupPage';
 import { PresentationModal } from './components/PresentationModal';
@@ -14,7 +15,7 @@ import { ProjectSummaryDto, ProjectDetailDto } from './types';
 import { api } from './api/client';
 import { ShieldAlert, Layers } from 'lucide-react';
 
-type Tab = 'dashboard' | 'projects' | 'admin' | 'login';
+type Tab = 'dashboard' | 'projects' | 'team' | 'admin' | 'login';
 
 export const AppContent: React.FC = () => {
   const { user, isAdmin, isAuthenticated, loading, logout } = useAuth();
@@ -62,6 +63,9 @@ export const AppContent: React.FC = () => {
       } else if (hash === 'projects') {
         setSelectedSlug(null);
         setCurrentTab('projects');
+      } else if (hash === 'team') {
+        setSelectedSlug(null);
+        setCurrentTab('team');
       } else if (hash === 'admin') {
         setSelectedSlug(null);
         setCurrentTab('admin');
@@ -184,6 +188,8 @@ export const AppContent: React.FC = () => {
             onAddNewProject={isAdmin ? () => setNewProjectModalOpen(true) : undefined}
             initialSearch={globalSearch}
           />
+        ) : currentTab === 'team' ? (
+          <TeamPage onViewDetails={(slug) => navigateTo('projects', slug)} />
         ) : currentTab === 'admin' ? (
           isAdmin ? (
             <AdminPage onViewDetails={(slug) => navigateTo('projects', slug)} />
