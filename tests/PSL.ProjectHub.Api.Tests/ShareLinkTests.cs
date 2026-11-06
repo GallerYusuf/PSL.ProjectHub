@@ -96,6 +96,18 @@ public class ShareLinkTests
         Assert.Equal("https://b2b.firma.com/admin", DeckBuilder.SelectLiveUrl(shared.Links, publicView: false));
     }
 
+    [Fact]
+    public void LiveUrl_IsNeverARepositoryOrApiAddress_EvenInternally()
+    {
+        var links = new List<ProjectLink>
+        {
+            new() { Url = "https://github.com/firma/proje", LinkType = LinkType.Repository, IsPrimary = true },
+            new() { Url = "http://88.0.0.1:5000", LinkType = LinkType.Api },
+        };
+        Assert.Null(DeckBuilder.SelectLiveUrl(links, publicView: false));
+        Assert.Null(DeckBuilder.SelectLiveUrl(links, publicView: true));
+    }
+
     [Theory]
     [InlineData("revoked")]
     [InlineData("expired")]

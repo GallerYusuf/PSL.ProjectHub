@@ -101,7 +101,8 @@ public static class DeckBuilder
     /// </summary>
     public static string? SelectLiveUrl(IEnumerable<ProjectLink> links, bool publicView)
     {
-        var candidates = links.Where(l => l.IsActive);
+        // "Uygulamayı Aç" yalnızca kullanıcıya açık ekranlara gider; repo, API, swagger, doküman ve izleme adresleri hariç
+        var candidates = links.Where(l => l.IsActive && l.LinkType is LinkType.Production or LinkType.AdminPanel);
         if (publicView)
             candidates = candidates.Where(l =>
                 !l.RequiresVpn &&
