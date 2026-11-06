@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { ProjectDetailDto } from "../types";
 import { AuthContext } from "../context/AuthContext";
+import { AuthenticatedImage } from "./AuthenticatedImage";
 
 interface PresentationModalProps {
   project: ProjectDetailDto;
@@ -390,7 +391,7 @@ export const PresentationModal: React.FC<PresentationModalProps> = ({
                     position: "relative"
                   }}
                 >
-                  <img
+                  <AuthenticatedImage
                     src={screenshots[activeScreenshotIdx].filePath}
                     alt={screenshots[activeScreenshotIdx].caption || project.name}
                     style={{ maxWidth: "100%", maxHeight: "56vh", objectFit: "contain" }}

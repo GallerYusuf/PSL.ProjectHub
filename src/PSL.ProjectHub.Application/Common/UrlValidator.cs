@@ -78,4 +78,15 @@ public static class UrlValidator
         clean = Regex.Replace(clean, @"\s+", "-").Trim('-');
         return clean;
     }
+
+    /// <summary>
+    /// Bir slug anahtarından okunabilir başlık formatında proje adı üretir (örn: 'fissler-servis' -> 'Fissler Servis').
+    /// </summary>
+    public static string HumanizeSlug(string? slug)
+    {
+        if (string.IsNullOrWhiteSpace(slug)) return "Yeni Proje";
+        var words = slug.Split(new[] { '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length == 0) return slug;
+        return string.Join(" ", words.Select(w => char.ToUpperInvariant(w[0]) + (w.Length > 1 ? w.Substring(1) : "")));
+    }
 }

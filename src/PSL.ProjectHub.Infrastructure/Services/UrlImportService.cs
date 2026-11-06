@@ -18,7 +18,7 @@ public class UrlImportService : IUrlImportService
         _context = context;
     }
 
-    public async Task<UrlImportResultDto> ImportFromJsonFileAsync(string filePath, CancellationToken cancellationToken = default)
+    public async Task<UrlImportResultDto> ImportFromJsonFileAsync(string filePath, bool autoCreateProjects = false, CancellationToken cancellationToken = default)
     {
         var result = new UrlImportResultDto();
 
@@ -42,7 +42,7 @@ public class UrlImportService : IUrlImportService
                 return result;
             }
 
-            return await ImportUrlsAsync(items, cancellationToken);
+            return await ImportUrlsAsync(items, autoCreateProjects, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -51,7 +51,7 @@ public class UrlImportService : IUrlImportService
         }
     }
 
-    public async Task<UrlImportResultDto> ImportUrlsAsync(List<UrlImportItemDto> items, CancellationToken cancellationToken = default)
+    public async Task<UrlImportResultDto> ImportUrlsAsync(List<UrlImportItemDto> items, bool autoCreateProjects = false, CancellationToken cancellationToken = default)
     {
         var result = new UrlImportResultDto();
 
@@ -71,9 +71,33 @@ public class UrlImportService : IUrlImportService
 
             if (project == null)
             {
-                result.Messages.Add($"Uyarı: '{item.ProjectKey}' anahtarına sahip proje sistemde bulunamadı. Bağlantılar atlandı.");
-                result.TotalLinksSkipped += item.Links?.Count ?? 0;
-                continue;
+                if (autoCreateProjects)
+                {
+                    var projName = !string.IsNullOrWhiteSpace(item.ProjectName)
+                        ? item.ProjectName.Trim()
+                        : UrlValidator.HumanizeSlug(cleanSlug);
+
+                    project = new Project
+                    {
+                        Name = projName,
+                        Slug = cleanSlug,
+                        ShortDescription = $"{projName} için URL aktarımı sırasında otomatik oluşturulan proje kaydı.",
+                        Category = "Genel",
+                        Status = ProjectStatus.Development,
+                        IsVerified = false,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                    _context.Projects.Add(project);
+                    await _context.SaveChangesAsync(cancellationToken);
+                    result.Messages.Add($"Bilgi: '{cleanSlug}' anahtarına sahip proje sistemde bulunamadığından '{projName}' adıyla otomatik oluşturuldu.");
+                }
+                else
+                {
+                    result.Messages.Add($"Uyarı: '{item.ProjectKey}' anahtarına (slug) sahip proje sistemde bulunamadı. Bağlantıların eklenebilmesi için önce 'Yeni Proje Tanımla' butonu ile projeyi oluşturun veya 'Eksik Projeleri Otomatik Oluştur' seçeneğini kullanın. Bağlantılar atlandı.");
+                    result.TotalLinksSkipped += item.Links?.Count ?? 0;
+                    continue;
+                }
             }
 
             result.TotalProjectsProcessed++;

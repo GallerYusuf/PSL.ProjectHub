@@ -264,6 +264,7 @@ public class UrlImportLinkDto
 public class UrlImportItemDto
 {
     public string ProjectKey { get; set; } = string.Empty;
+    public string? ProjectName { get; set; }
     public List<UrlImportLinkDto> Links { get; set; } = new();
 }
 

@@ -20,19 +20,25 @@ public class UrlImportController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<UrlImportResultDto>> ImportFromPayload([FromBody] List<UrlImportItemDto> items, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<UrlImportResultDto>> ImportFromPayload(
+        [FromBody] List<UrlImportItemDto> items,
+        [FromQuery] bool autoCreateProjects = false,
+        CancellationToken cancellationToken = default)
     {
         if (items == null || items.Count == 0)
         {
             return BadRequest(new { message = "İçe aktarılacak URL listesi boş olamaz." });
         }
 
-        var result = await _importService.ImportUrlsAsync(items, cancellationToken);
+        var result = await _importService.ImportUrlsAsync(items, autoCreateProjects, cancellationToken);
         return Ok(result);
     }
 
     [HttpPost("file")]
-    public async Task<ActionResult<UrlImportResultDto>> ImportFromWorkspaceFile([FromQuery] string? fileName, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<UrlImportResultDto>> ImportFromWorkspaceFile(
+        [FromQuery] string? fileName,
+        [FromQuery] bool autoCreateProjects = false,
+        CancellationToken cancellationToken = default)
     {
         var targetFile = string.IsNullOrWhiteSpace(fileName) ? "project-urls.json" : fileName.Trim();
 
@@ -71,7 +77,7 @@ public class UrlImportController : ControllerBase
             return NotFound(new { message = $"'{safeFileName}' dosyası bulunamadı. Lütfen dosyanın proje kök dizininde olduğundan emin olun." });
         }
 
-        var result = await _importService.ImportFromJsonFileAsync(path, cancellationToken);
+        var result = await _importService.ImportFromJsonFileAsync(path, autoCreateProjects, cancellationToken);
         return Ok(result);
     }
 
@@ -79,7 +85,10 @@ public class UrlImportController : ControllerBase
     /// Güvenli dosya yükleme uç noktası. JSON dosyasını sunucuya doğrudan yükleyerek içe aktarır.
     /// </summary>
     [HttpPost("upload")]
-    public async Task<ActionResult<UrlImportResultDto>> UploadAndImport(IFormFile? file, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<UrlImportResultDto>> UploadAndImport(
+        IFormFile? file,
+        [FromQuery] bool autoCreateProjects = false,
+        CancellationToken cancellationToken = default)
     {
         if (file == null || file.Length == 0)
         {
@@ -114,7 +123,7 @@ public class UrlImportController : ControllerBase
                 return BadRequest(new { message = "Dosya içeriğinde geçerli URL import verisi bulunamadı." });
             }
 
-            var result = await _importService.ImportUrlsAsync(items, cancellationToken);
+            var result = await _importService.ImportUrlsAsync(items, autoCreateProjects, cancellationToken);
             return Ok(result);
         }
         catch (System.Text.Json.JsonException ex)

@@ -37,6 +37,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onViewDetails }) => {
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<any | null>(null);
+  const [autoCreateMissing, setAutoCreateMissing] = useState(false);
 
   useEffect(() => {
     loadProjects();
@@ -93,9 +94,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onViewDetails }) => {
       setImporting(true);
       setImportResult(null);
       setError(null);
-      const res = await api.importUrlsFromFile('project-urls.json');
+      const res = await api.importUrlsFromFile('project-urls.json', autoCreateMissing);
       setImportResult(res);
-      setMessage('project-urls.json başarıyla içe aktarıldı.');
+      if (res.totalProjectsProcessed === 0 && res.totalLinksSkipped > 0) {
+        setError('Bağlantılar aktarılamadı: Belirtilen proje sistemde bulunamadı. Lütfen aktarım raporunu inceleyin veya "Eksik projeleri otomatik oluştur" seçeneğini işaretleyin.');
+      } else {
+        setMessage(`project-urls.json başarıyla işlendi (${res.totalProjectsProcessed} proje, ${res.totalLinksAdded} yeni bağlantı, ${res.totalLinksUpdated} güncelleme).`);
+      }
       await loadProjects();
     } catch (err: any) {
       setError(err.message || 'İçe aktarma sırasında hata oluştu. project-urls.json dosyasının proje kök dizininde olduğundan emin olun.');
@@ -114,9 +119,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onViewDetails }) => {
       setError(null);
       const formData = new FormData();
       formData.append('file', importFile);
-      const res = await api.uploadUrlImportFile(formData);
+      const res = await api.uploadUrlImportFile(formData, autoCreateMissing);
       setImportResult(res);
-      setMessage('JSON dosyası başarıyla yüklendi ve içe aktarıldı.');
+      if (res.totalProjectsProcessed === 0 && res.totalLinksSkipped > 0) {
+        setError('Bağlantılar aktarılamadı: Belirtilen proje sistemde bulunamadı. Lütfen aktarım raporunu inceleyin veya "Eksik projeleri otomatik oluştur" seçeneğini işaretleyin.');
+      } else {
+        setMessage(`JSON dosyası başarıyla yüklendi ve işlendi (${res.totalProjectsProcessed} proje, ${res.totalLinksAdded} yeni bağlantı, ${res.totalLinksUpdated} güncelleme).`);
+      }
       setImportFile(null);
       await loadProjects();
     } catch (err: any) {
@@ -134,9 +143,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onViewDetails }) => {
       setError(null);
       const parsed = JSON.parse(importJsonText);
       const payload = Array.isArray(parsed) ? parsed : [parsed];
-      const res = await api.importUrls(payload);
+      const res = await api.importUrls(payload, autoCreateMissing);
       setImportResult(res);
-      setMessage('JSON başarıyla içe aktarıldı.');
+      if (res.totalProjectsProcessed === 0 && res.totalLinksSkipped > 0) {
+        setError('Bağlantılar aktarılamadı: Belirtilen proje sistemde bulunamadı. Lütfen aktarım raporundaki uyarıları inceleyin veya "Eksik projeleri otomatik oluştur" seçeneğini işaretleyin.');
+      } else {
+        setMessage(`JSON başarıyla işlendi (${res.totalProjectsProcessed} proje, ${res.totalLinksAdded} yeni bağlantı, ${res.totalLinksUpdated} güncelleme).`);
+      }
       setImportJsonText('');
       await loadProjects();
     } catch (err: any) {
@@ -202,6 +215,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onViewDetails }) => {
               JSON dosyasından tüm sistemlerin canlı, test ve swagger adreslerini senkronize edin.
             </p>
           </div>
+        </div>
+
+        {/* Eksik Projeleri Otomatik Oluşturma Seçeneği */}
+        <div style={{ marginBottom: '1.2rem', padding: '0.65rem 0.9rem', background: 'var(--bg-app)', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <input
+            type="checkbox"
+            id="autoCreateProjectsCheck"
+            checked={autoCreateMissing}
+            onChange={(e) => setAutoCreateMissing(e.target.checked)}
+            style={{ cursor: 'pointer', width: '16px', height: '16px' }}
+          />
+          <label htmlFor="autoCreateProjectsCheck" style={{ fontSize: '0.82rem', fontWeight: 500, cursor: 'pointer', userSelect: 'none', color: 'var(--text-primary)' }}>
+            Eksik projeleri otomatik oluştur (JSON içindeki <code>projectKey</code> sistemde tanımlı değilse yeni proje taslağı açar ve bağlantıları bağlar)
+          </label>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem', alignItems: 'flex-start' }}>

@@ -102,4 +102,41 @@ public class UrlImportTests
         Assert.Equal(1, result.TotalLinksSkipped);
         Assert.Contains(result.Messages, m => m.Contains("sistemde bulunamadı"));
     }
+
+    [Fact]
+    public async Task ImportUrlsAsync_AutoCreatesMissingProject_WhenFlagIsTrue()
+    {
+        using var context = TestHelpers.CreateInMemoryDbContext();
+        var importService = new UrlImportService(context);
+
+        var importData = new List<UrlImportItemDto>
+        {
+            new()
+            {
+                ProjectKey = "yeni-otomatik-proje",
+                Links = new List<UrlImportLinkDto>
+                {
+                    new()
+                    {
+                        Label = "Canlı Portal",
+                        Url = "https://otomatik.gallerycrystal.internal",
+                        LinkType = "Production",
+                        Environment = "Production",
+                        IsPrimary = true
+                    }
+                }
+            }
+        };
+
+        var result = await importService.ImportUrlsAsync(importData, autoCreateProjects: true);
+
+        Assert.Equal(1, result.TotalProjectsProcessed);
+        Assert.Equal(1, result.TotalLinksAdded);
+        Assert.Equal(0, result.TotalLinksSkipped);
+
+        // Verify project created in DB
+        var project = context.Projects.FirstOrDefault(p => p.Slug == "yeni-otomatik-proje");
+        Assert.NotNull(project);
+        Assert.Equal("Yeni Otomatik Proje", project.Name);
+    }
 }

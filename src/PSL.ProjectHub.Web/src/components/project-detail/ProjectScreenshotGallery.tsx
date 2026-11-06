@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   Image as ImageIcon,
   Upload,
@@ -10,6 +10,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { ProjectScreenshotDto } from "../../types";
+import { AuthenticatedImage } from "../AuthenticatedImage";
 
 interface ProjectScreenshotGalleryProps {
   screenshots: ProjectScreenshotDto[];
@@ -101,7 +102,7 @@ export const ProjectScreenshotGallery: React.FC<ProjectScreenshotGalleryProps> =
                 style={{ height: "150px", overflow: "hidden", cursor: "pointer", position: "relative", background: "#0f172a" }}
                 onClick={() => setActiveLightboxIndex(idx)}
               >
-                <img
+                <AuthenticatedImage
                   src={s.filePath}
                   alt={s.caption || s.fileName}
                   style={{ width: "100%", height: "100%", objectFit: "cover" }}
@@ -239,7 +240,7 @@ export const ProjectScreenshotGallery: React.FC<ProjectScreenshotGalleryProps> =
             style={{ maxWidth: "90vw", maxHeight: "80vh", display: "flex", flexDirection: "column", alignItems: "center" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <img
+            <AuthenticatedImage
               src={currentScreenshot.filePath}
               alt={currentScreenshot.caption || currentScreenshot.fileName}
               style={{ maxWidth: "100%", maxHeight: "75vh", objectFit: "contain", borderRadius: "var(--radius-sm)" }}

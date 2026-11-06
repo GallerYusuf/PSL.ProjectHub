@@ -48,8 +48,8 @@ public interface IDashboardService
 
 public interface IUrlImportService
 {
-    Task<UrlImportResultDto> ImportUrlsAsync(List<UrlImportItemDto> items, CancellationToken cancellationToken = default);
-    Task<UrlImportResultDto> ImportFromJsonFileAsync(string filePath, CancellationToken cancellationToken = default);
+    Task<UrlImportResultDto> ImportUrlsAsync(List<UrlImportItemDto> items, bool autoCreateProjects = false, CancellationToken cancellationToken = default);
+    Task<UrlImportResultDto> ImportFromJsonFileAsync(string filePath, bool autoCreateProjects = false, CancellationToken cancellationToken = default);
 }
 
 public interface IAuthService

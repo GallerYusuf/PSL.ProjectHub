@@ -243,21 +243,26 @@ export const api = {
   },
 
   // Import
-  async importUrls(payload: any[]): Promise<any> {
-    return request('/url-import', {
+  async importUrls(payload: any[], autoCreateProjects = false): Promise<any> {
+    const q = autoCreateProjects ? '?autoCreateProjects=true' : '';
+    return request(`/url-import${q}`, {
       method: 'POST',
       body: JSON.stringify(payload),
     });
   },
 
-  async importUrlsFromFile(fileName?: string): Promise<any> {
-    const q = fileName ? `?fileName=${encodeURIComponent(fileName)}` : '';
-    return request(`/url-import/file${q}`, { method: 'POST' });
+  async importUrlsFromFile(fileName?: string, autoCreateProjects = false): Promise<any> {
+    const params = new URLSearchParams();
+    if (fileName) params.set('fileName', fileName);
+    if (autoCreateProjects) params.set('autoCreateProjects', 'true');
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return request(`/url-import/file${qs}`, { method: 'POST' });
   },
 
-  async uploadUrlImportFile(formData: FormData): Promise<any> {
+  async uploadUrlImportFile(formData: FormData, autoCreateProjects = false): Promise<any> {
     const token = localStorage.getItem('psl_token');
-    const response = await fetch(`${API_BASE}/url-import/upload`, {
+    const q = autoCreateProjects ? '?autoCreateProjects=true' : '';
+    const response = await fetch(`${API_BASE}/url-import/upload${q}`, {
       method: 'POST',
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,

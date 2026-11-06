@@ -47,3 +47,9 @@ secrets.json
 # Local agent & workspace artifacts
 .agents/
 GEMINI.md
+
+# Uploaded files (runtime data)
+src/PSL.ProjectHub.Api/uploads/
+
+# Local Claude preview config
+.claude/

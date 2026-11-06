@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PSL.ProjectHub.Application.DTOs;
@@ -109,7 +109,7 @@ public class ScreenshotsController : ControllerBase
 
     /// <summary>
     /// Yetkili kullanıcıya ekran görüntüsü dosyasını stream eder.
-    /// Dosya web root dışında saklandığından doğrudan URL ile erişilemez.
+    /// Dosya web root dışında saklanır; istemci AuthenticatedImage ile Bearer token göndererek çeker.
     /// </summary>
     [HttpGet("api/screenshots/{id:guid}/file")]
     public async Task<IActionResult> GetScreenshotFile(
