@@ -61,11 +61,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onViewDetails }) => {
     if (editingProject) {
       await api.updateProject(editingProject.id, payload);
       setMessage('Proje başarıyla güncellendi.');
-    } else {
-      await api.createProject(payload);
-      setMessage('Yeni proje başarıyla eklendi.');
+      await loadProjects();
+      return;
     }
-    await loadProjects();
+    // Yeni proje: oluşturulanı döndür ki modal yapıştırılan bağlantıları ona ekleyebilsin
+    return api.createProject(payload);
   };
 
   const handleArchiveProject = async (id: string, name: string) => {
@@ -441,6 +441,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onViewDetails }) => {
             setEditingProject(null);
           }}
           onSave={handleSaveProject}
+          onCreated={async (project, links) => {
+            setProjectModalOpen(false);
+            setEditingProject(null);
+            setMessage(
+              `'${project.name}' eklendi` +
+              (links.created > 0 ? `, ${links.created} bağlantı kaydedildi` : '') +
+              (links.failed.length > 0 ? `; ${links.failed.length} bağlantı eklenemedi (${links.failed.map(f => f.url).join(', ')})` : '') +
+              '.'
+            );
+            await loadProjects();
+          }}
         />
       )}
     </div>

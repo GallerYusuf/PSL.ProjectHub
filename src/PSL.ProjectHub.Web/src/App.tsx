@@ -221,10 +221,14 @@ export const AppContent: React.FC = () => {
       {newProjectModalOpen && (
         <AdminProjectModal
           onClose={() => setNewProjectModalOpen(false)}
-          onSave={async (data) => {
-            await api.createProject(data);
+          onSave={(data) => api.createProject(data)}
+          onCreated={(project, links) => {
             setNewProjectModalOpen(false);
-            navigateTo('projects');
+            if (links.failed.length > 0) {
+              alert(`Proje oluşturuldu, ancak ${links.failed.length} bağlantı eklenemedi:\n` +
+                links.failed.map(f => `• ${f.url}: ${f.reason}`).join('\n'));
+            }
+            navigateTo('projects', project.slug);
           }}
         />
       )}

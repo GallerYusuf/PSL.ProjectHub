@@ -7,7 +7,8 @@ import {
   Trash2,
   Lock,
   ShieldAlert,
-  Layers
+  Layers,
+  ClipboardPaste
 } from "lucide-react";
 import { ProjectLinkDto } from "../../types";
 
@@ -15,6 +16,8 @@ interface ProjectLinkInventoryProps {
   links: ProjectLinkDto[];
   isAdmin: boolean;
   onAddLink: () => void;
+  /** Birden çok adresi tek seferde yapıştırma penceresini açar. */
+  onBulkAdd?: () => void;
   onEditLink: (link: ProjectLinkDto) => void;
   onDeleteLink: (link: ProjectLinkDto) => void;
   onSetPrimary: (linkId: string) => void;
@@ -24,6 +27,7 @@ export const ProjectLinkInventory: React.FC<ProjectLinkInventoryProps> = ({
   links,
   isAdmin,
   onAddLink,
+  onBulkAdd,
   onEditLink,
   onDeleteLink,
   onSetPrimary
@@ -39,14 +43,26 @@ export const ProjectLinkInventory: React.FC<ProjectLinkInventoryProps> = ({
         </div>
 
         {isAdmin && (
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={onAddLink}
-            style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
-          >
-            <Plus size={14} />
-            <span>Yeni URL Tanımla</span>
-          </button>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            {onBulkAdd && (
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={onBulkAdd}
+                style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+              >
+                <ClipboardPaste size={14} />
+                <span>Toplu Yapıştır</span>
+              </button>
+            )}
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={onAddLink}
+              style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}
+            >
+              <Plus size={14} />
+              <span>Tek Bağlantı Ekle</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -60,8 +76,8 @@ export const ProjectLinkInventory: React.FC<ProjectLinkInventoryProps> = ({
             Bu sistem için henüz tanımlanmış bir erişim adresi bulunmuyor.
           </p>
           {isAdmin && (
-            <button className="btn btn-primary btn-sm" onClick={onAddLink}>
-              İlk Bağlantıyı Ekle
+            <button className="btn btn-primary btn-sm" onClick={onBulkAdd ?? onAddLink}>
+              Bağlantıları Yapıştır
             </button>
           )}
         </div>

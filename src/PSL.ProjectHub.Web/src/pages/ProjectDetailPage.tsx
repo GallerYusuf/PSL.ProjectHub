@@ -16,6 +16,9 @@ import { ProjectDossierTab } from "../components/project-detail/ProjectDossierTa
 import { ProjectTechnicalTab } from "../components/project-detail/ProjectTechnicalTab";
 import { ProjectLinkInventory } from "../components/project-detail/ProjectLinkInventory";
 import { ProjectScreenshotGallery } from "../components/project-detail/ProjectScreenshotGallery";
+import { ProjectCompleteness, CompletenessAction } from "../components/project-detail/ProjectCompleteness";
+import { BulkLinkModal } from "../components/BulkLinkPaste";
+import { AdminProjectModal } from "../components/AdminProjectModal";
 
 interface ProjectDetailPageProps {
   slug: string;
@@ -43,6 +46,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<ProjectLinkDto | null>(null);
   const [linkToDelete, setLinkToDelete] = useState<ProjectLinkDto | null>(null);
+  const [bulkLinkOpen, setBulkLinkOpen] = useState(false);
+  const [editProjectOpen, setEditProjectOpen] = useState(false);
 
   // Screenshot Yükleme Modalı
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -216,8 +221,25 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         onStartPresentation={() => setShowPresentation(true)}
         onToggleVerified={handleToggleVerified}
         onArchive={handleArchive}
-        onEdit={onEditProject ? () => onEditProject(project) : undefined}
+        onEdit={
+          onEditProject
+            ? () => onEditProject(project)
+            : isAdmin
+              ? () => setEditProjectOpen(true)
+              : undefined
+        }
       />
+
+      {isAdmin && (
+        <ProjectCompleteness
+          project={project}
+          onAction={(action: CompletenessAction) => {
+            if (action === "links") setBulkLinkOpen(true);
+            else if (action === "screenshot") setUploadModalOpen(true);
+            else setEditProjectOpen(true);
+          }}
+        />
+      )}
 
       {/* URL Envanteri (Öncelikli Operasyonel Alan) */}
       <ProjectLinkInventory
@@ -227,6 +249,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
           setEditingLink(null);
           setLinkModalOpen(true);
         }}
+        onBulkAdd={() => setBulkLinkOpen(true)}
         onEditLink={(link) => {
           setEditingLink(link);
           setLinkModalOpen(true);
@@ -385,6 +408,37 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
             setEditingLink(null);
           }}
           onSave={handleSaveLink}
+        />
+      )}
+
+      {/* Toplu Bağlantı Yapıştırma */}
+      {bulkLinkOpen && (
+        <BulkLinkModal
+          projectId={project.id}
+          projectName={project.name}
+          hasPrimary={(project.links ?? []).some(l => l.isPrimary)}
+          onClose={() => setBulkLinkOpen(false)}
+          onSaved={async (result) => {
+            setBulkLinkOpen(false);
+            if (result.failed.length > 0) {
+              alert(`${result.created} bağlantı eklendi, ${result.failed.length} bağlantı eklenemedi:\n` +
+                result.failed.map(f => `• ${f.url}: ${f.reason}`).join("\n"));
+            }
+            await loadProject();
+          }}
+        />
+      )}
+
+      {/* Proje Bilgilerini Düzenleme */}
+      {editProjectOpen && (
+        <AdminProjectModal
+          initialData={project}
+          onClose={() => setEditProjectOpen(false)}
+          onSave={async (data) => {
+            const updated = await api.updateProject(project.id, data);
+            await loadProject();
+            return updated;
+          }}
         />
       )}
 
