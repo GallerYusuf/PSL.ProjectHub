@@ -1,0 +1,152 @@
+/* Sunum (deck) görünümü: projeksiyonda okunabilir büyük tipografi, kurumsal vurgu rengi */
+.deck {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #ffffff;
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.deck-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.deck-topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.deck-stage {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+.deck-slide {
+  width: 100%;
+  max-width: 1120px;
+  animation: deck-in 0.25s ease;
+}
+
+@keyframes deck-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-slide { animation: none; }
+}
+
+.deck-kicker {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 0.6rem;
+}
+
+.deck-title {
+  font-size: clamp(2rem, 4.2vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
+}
+
+.deck-lead {
+  font-size: clamp(1.05rem, 1.8vw, 1.4rem);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  max-width: 60ch;
+  margin: 0;
+}
+
+.deck-big-number {
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--primary);
+}
+
+.deck-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.deck-panel {
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 1.1rem 1.25rem;
+  background: #ffffff;
+}
+
+.deck-panel h3 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0 0 0.45rem;
+}
+
+.deck-panel p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.deck-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.deck-progress {
+  flex: 1;
+  height: 4px;
+  background: var(--bg-subtle, #f1f5f9);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.deck-progress > div {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.2s ease;
+}
+
+.deck-image {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  object-fit: cover;
+  aspect-ratio: 16 / 10;
+  background: var(--bg-subtle, #f1f5f9);
+}
+
+@media (max-width: 720px) {
+  .deck-stage { align-items: flex-start; padding: 1.25rem 1rem; }
+  .deck-topbar, .deck-controls { padding: 0.6rem 1rem; }
+}

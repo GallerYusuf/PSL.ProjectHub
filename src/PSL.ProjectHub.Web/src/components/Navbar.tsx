@@ -51,7 +51,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {isDev ? 'DEV' : 'PROD'}
                 </span>
               </div>
-              <span className="brand-subtitle">{branding.organizationName || 'Proje Portföyü'}</span>
+              <span className="brand-subtitle" title={branding.organizationName}>{branding.organizationName || 'Proje Portföyü'}</span>
             </div>
           </div>
         </div>
@@ -81,6 +81,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 className={`nav-link ${currentTab === 'dashboard' ? 'active' : ''}`}
                 onClick={() => onSelectTab('dashboard')}
+                aria-label="Dashboard"
+                title="Dashboard"
               >
                 <LayoutDashboard size={15} />
                 <span>Dashboard</span>
@@ -89,6 +91,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 className={`nav-link ${currentTab === 'projects' ? 'active' : ''}`}
                 onClick={() => onSelectTab('projects')}
+                aria-label="Projeler"
+                title="Projeler"
               >
                 <FolderGit2 size={15} />
                 <span>Projeler</span>
@@ -97,6 +101,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 className={`nav-link ${currentTab === 'team' ? 'active' : ''}`}
                 onClick={() => onSelectTab('team')}
+                aria-label="Ekip"
+                title="Ekip"
               >
                 <Users size={15} />
                 <span>Ekip</span>
@@ -105,6 +111,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 className={`nav-link ${currentTab === 'timeline' ? 'active' : ''}`}
                 onClick={() => onSelectTab('timeline')}
+                aria-label="Zaman Çizelgesi"
+                title="Zaman Çizelgesi"
               >
                 <CalendarRange size={15} />
                 <span>Zaman Çizelgesi</span>
@@ -114,6 +122,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   className={`nav-link ${currentTab === 'admin' ? 'active' : ''}`}
                   onClick={() => onSelectTab('admin')}
+                  aria-label="Yönetim Paneli"
+                  title="Yönetim Paneli"
                 >
                   <ShieldCheck size={15} />
                   <span>Yönetim Paneli</span>
@@ -140,7 +150,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.82rem' }}>
                 <UserCheck size={14} color="var(--primary)" />
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{user?.fullName || user?.username}</span>
+                <span className="navbar-user-name" title={user?.fullName || user?.username}>{user?.fullName || user?.username}</span>
                 <span className={`badge ${isAdmin ? 'badge-verified' : 'badge-archived'}`}>
                   {isAdmin ? 'Admin' : 'Viewer'}
                 </span>

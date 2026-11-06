@@ -9,6 +9,9 @@ import {
   OrganizationSettings,
   ImpactSummaryDto,
   TimelineDto,
+  DeckDto,
+  ShareLinkDto,
+  CreatedShareLinkDto,
   ProjectMetricDto,
   ProjectMetricInput,
   TeamMemberDto,
@@ -75,6 +78,44 @@ export const api = {
   // Setup (ilk kurulum)
   async getSetupStatus(): Promise<{ isInitialized: boolean; message: string }> {
     return request('/setup/status');
+  },
+
+  // Sunum ve paylaşım
+  async getDeck(projectIds?: string[]): Promise<DeckDto> {
+    const query = projectIds && projectIds.length > 0
+      ? '?' + projectIds.map(id => `projectIds=${encodeURIComponent(id)}`).join('&')
+      : '';
+    return request(`/deck${query}`);
+  },
+
+  /** Oturum gerektirmez; paylaşım linkindeki anahtarla sunumu getirir. */
+  async getPublicDeck(token: string): Promise<DeckDto> {
+    const response = await fetch(`${API_BASE}/public/shares/${encodeURIComponent(token)}`);
+    if (!response.ok) {
+      let message = response.status === 429
+        ? 'Çok fazla istek yapıldı. Lütfen biraz sonra tekrar deneyin.'
+        : 'Bu paylaşım linki geçersiz, süresi dolmuş ya da iptal edilmiş.';
+      try {
+        const data = await response.json();
+        message = data.message || message;
+      } catch {
+        // fallback
+      }
+      throw new Error(message);
+    }
+    return response.json();
+  },
+
+  async getShareLinks(): Promise<ShareLinkDto[]> {
+    return request('/shares');
+  },
+
+  async createShareLink(data: { title: string; projectIds: string[]; expiresInDays: number }): Promise<CreatedShareLinkDto> {
+    return request('/shares', { method: 'POST', body: JSON.stringify(data) });
+  },
+
+  async revokeShareLink(id: string): Promise<void> {
+    await request(`/shares/${id}`, { method: 'DELETE' });
   },
 
   // Zaman çizelgesi

@@ -4,7 +4,56 @@ export type EnvironmentType = 'Production' | 'Test' | 'Development' | 'Internal'
 export type ComponentType = 'API' | 'Web' | 'Gateway' | 'Worker' | 'WindowsService' | 'ScheduledJob' | 'Other';
 export type NoteType = 'KnownIssue' | 'DevelopmentNote' | 'Decision' | 'FuturePlan';
 
-export type TimelineEventKind = 'Started' | 'WentLive' | 'Release';
+export interface DeckProjectDto {
+  id: string;
+  name: string;
+  slug: string;
+  shortDescription: string;
+  category: string;
+  status: ProjectStatus;
+  businessProblem?: string;
+  businessSolution?: string;
+  businessValue?: string;
+  targetUsers?: string;
+  ownerName?: string;
+  startDate?: string;
+  liveDate?: string;
+  technologies: string[];
+  metrics: ProjectMetricDto[];
+  team: ProjectMemberDto[];
+  imageUrls: string[];
+  liveUrl?: string;
+}
+
+export interface DeckDto {
+  title?: string;
+  branding: OrganizationSettings;
+  generatedAt: string;
+  impact: ImpactSummaryDto;
+  statusCounts: { live: number; pilot: number; development: number; maintenance: number };
+  timeline: { year: number; projectsStarted: number; projectsWentLive: number; releases: number };
+  projects: DeckProjectDto[];
+  expiresAt?: string;
+}
+
+export interface ShareLinkDto {
+  id: string;
+  title: string;
+  projectCount: number;
+  createdAt: string;
+  createdBy?: string;
+  expiresAt: string;
+  isActive: boolean;
+  revokedAt?: string;
+  viewCount: number;
+  lastViewedAt?: string;
+}
+
+export interface CreatedShareLinkDto extends ShareLinkDto {
+  token: string;
+}
+
+export type TimelineEventKind ='Started' | 'WentLive' | 'Release';
 
 export interface TimelineEventDto {
   date: string;

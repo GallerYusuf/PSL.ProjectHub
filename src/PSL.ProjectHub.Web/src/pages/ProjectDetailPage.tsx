@@ -11,7 +11,6 @@ import { ProjectDetailDto, ProjectLinkDto, ProjectScreenshotDto, ProjectMetricDt
 import { ProjectImpactTeam } from "../components/project-detail/ProjectImpactTeam";
 import { useAuth } from "../context/AuthContext";
 import { AdminLinkModal } from "../components/AdminLinkModal";
-import { PresentationModal } from "../components/PresentationModal";
 import { ProjectDetailHeader } from "../components/project-detail/ProjectDetailHeader";
 import { ProjectDossierTab } from "../components/project-detail/ProjectDossierTab";
 import { ProjectTechnicalTab } from "../components/project-detail/ProjectTechnicalTab";
@@ -25,12 +24,15 @@ interface ProjectDetailPageProps {
   slug: string;
   onBack: () => void;
   onEditProject?: (project: ProjectDetailDto) => void;
+  /** Projenin sunumunu açar (uygulama genelindeki sunum görüntüleyicisi). */
+  onStartPresentation?: (project: { id: string }) => void;
 }
 
 export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   slug,
   onBack,
-  onEditProject
+  onEditProject,
+  onStartPresentation
 }) => {
   const { isAdmin, user } = useAuth();
   const isEditor = user?.roles?.includes("Editor") ?? false;
@@ -41,7 +43,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
 
   // Sekmeler: 'dossier' (Yönetici Özeti) vs 'technical' (Teknik Mimari)
   const [activeTab, setActiveTab] = useState<"dossier" | "technical">("dossier");
-  const [showPresentation, setShowPresentation] = useState(false);
 
   // Link Modalları
   const [linkModalOpen, setLinkModalOpen] = useState(false);
@@ -241,7 +242,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         isAdmin={isAdmin}
         isEditor={isEditor}
         onBack={onBack}
-        onStartPresentation={() => setShowPresentation(true)}
+        onStartPresentation={() => onStartPresentation?.(project)}
         onToggleVerified={handleToggleVerified}
         onArchive={handleArchive}
         onEdit={
@@ -482,13 +483,6 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         />
       )}
 
-      {/* Sunum Modu Modalı */}
-      {showPresentation && (
-        <PresentationModal
-          project={project}
-          onClose={() => setShowPresentation(false)}
-        />
-      )}
 
       {/* Link Silme Onay Modalı */}
       {linkToDelete && (

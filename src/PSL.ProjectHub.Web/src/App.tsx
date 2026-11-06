@@ -10,9 +10,11 @@ import { TeamPage } from './pages/TeamPage';
 import { TimelinePage } from './pages/TimelinePage';
 import { LoginPage } from './pages/LoginPage';
 import SetupPage from './pages/SetupPage';
-import { PresentationModal } from './components/PresentationModal';
+import { DeckViewer } from './components/deck/DeckViewer';
+import { PresentationSetup } from './components/deck/PresentationSetup';
+import { SharePage } from './components/deck/SharePage';
 import { AdminProjectModal } from './components/AdminProjectModal';
-import { ProjectSummaryDto, ProjectDetailDto } from './types';
+import { DeckDto, ProjectSummaryDto } from './types';
 import { api } from './api/client';
 import { ShieldAlert, Layers } from 'lucide-react';
 
@@ -49,7 +51,8 @@ export const AppContent: React.FC = () => {
   }, []);
 
   // Global Sunum Modu ve Yeni Proje Modalı
-  const [presentationProject, setPresentationProject] = useState<ProjectDetailDto | null>(null);
+  const [presentation, setPresentation] = useState<{ deck: DeckDto; projectsOnly: boolean } | null>(null);
+  const [presentationSetupOpen, setPresentationSetupOpen] = useState(false);
   const [newProjectModalOpen, setNewProjectModalOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
 
@@ -110,31 +113,13 @@ export const AppContent: React.FC = () => {
     }
   };
 
-  const handleStartPresentation = async (projectSummary: ProjectSummaryDto) => {
+  /** Tek projenin sunumu (proje kartı / proje sayfası). */
+  const handleStartPresentation = async (projectSummary: Pick<ProjectSummaryDto, 'id'>) => {
     try {
-      const detail = await api.getProject(projectSummary.slug);
-      setPresentationProject(detail);
-    } catch {
-      setPresentationProject({
-        ...projectSummary,
-        components: [],
-        links: projectSummary.primaryLink ? [projectSummary.primaryLink] : [],
-        screenshots: [],
-        integrations: [],
-        releases: [],
-        notes: [],
-      });
-    }
-  };
-
-  const handleLaunchFirstProjectPresentation = async () => {
-    try {
-      const projects = await api.getProjects();
-      if (projects.length > 0) {
-        await handleStartPresentation(projects[0]);
-      }
-    } catch {
-      // sessizce geç
+      const deck = await api.getDeck([projectSummary.id]);
+      setPresentation({ deck, projectsOnly: true });
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Sunum açılamadı.');
     }
   };
 
@@ -166,7 +151,7 @@ export const AppContent: React.FC = () => {
       <Navbar
         currentTab={selectedSlug ? 'projects' : currentTab}
         onSelectTab={(tab) => navigateTo(tab)}
-        onOpenPresentation={handleLaunchFirstProjectPresentation}
+        onOpenPresentation={() => setPresentationSetupOpen(true)}
         onSearchSubmit={(q) => {
           setGlobalSearch(q);
           navigateTo('projects');
@@ -178,6 +163,7 @@ export const AppContent: React.FC = () => {
           <ProjectDetailPage
             slug={selectedSlug}
             onBack={() => navigateTo('projects')}
+            onStartPresentation={handleStartPresentation}
           />
         ) : currentTab === 'dashboard' ? (
           <DashboardPage
@@ -222,10 +208,21 @@ export const AppContent: React.FC = () => {
       </main>
 
       {/* Genel Sunum Modu Modalı */}
-      {presentationProject && (
-        <PresentationModal
-          project={presentationProject}
-          onClose={() => setPresentationProject(null)}
+      {presentationSetupOpen && (
+        <PresentationSetup
+          onClose={() => setPresentationSetupOpen(false)}
+          onStart={(deck) => {
+            setPresentationSetupOpen(false);
+            setPresentation({ deck, projectsOnly: false });
+          }}
+        />
+      )}
+
+      {presentation && (
+        <DeckViewer
+          deck={presentation.deck}
+          projectsOnly={presentation.projectsOnly}
+          onClose={() => setPresentation(null)}
         />
       )}
 
@@ -255,7 +252,30 @@ export const AppContent: React.FC = () => {
   );
 };
 
+/** #share/{anahtar} adresindeki paylaşım anahtarı; yoksa null. */
+const readShareToken = () => {
+  const match = window.location.hash.match(/^#\/?share\/([A-Za-z0-9_-]{20,100})$/);
+  return match ? match[1] : null;
+};
+
 export const App: React.FC = () => {
+  const [shareToken, setShareToken] = useState<string | null>(readShareToken);
+
+  useEffect(() => {
+    const onHash = () => setShareToken(readShareToken());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  // Paylaşım linki: oturum ve kurulum kontrolü olmadan salt okunur sunum
+  if (shareToken) {
+    return (
+      <BrandingProvider>
+        <SharePage token={shareToken} />
+      </BrandingProvider>
+    );
+  }
+
   return (
     <BrandingProvider>
       <AuthProvider>

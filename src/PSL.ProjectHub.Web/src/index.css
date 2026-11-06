@@ -165,13 +165,40 @@ button, input, select, textarea {
 .brand-title {
   color: var(--text-primary);
   font-weight: 700;
+  white-space: nowrap;
 }
 
+/* Uzun firma adları üst çubuğu iki satıra bölmesin */
 .brand-subtitle {
   font-size: 0.72rem;
   color: var(--text-muted);
   font-weight: 500;
   display: block;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navbar-user-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navbar .btn { white-space: nowrap; }
+
+@media (max-width: 1180px) {
+  .navbar-user-name { display: none; }
+  .nav-link { padding: 0.45rem 0.5rem; }
+}
+
+/* Dar ekranda menü etiketleri gizlenir, ikonlar kalır (title ile açıklanır) */
+@media (max-width: 1100px) {
+  .nav-link span { display: none; }
 }
 
 /* Ortam Göstergesi */
