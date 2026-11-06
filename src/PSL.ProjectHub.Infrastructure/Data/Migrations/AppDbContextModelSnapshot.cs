@@ -435,6 +435,79 @@ namespace PSL.ProjectHub.Infrastructure.Data.Migrations
                     b.ToTable("ProjectLinks");
                 });
 
+            modelBuilder.Entity("PSL.ProjectHub.Domain.Entities.ProjectMember", b =>
+                {
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TeamMemberId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsLead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("ProjectId", "TeamMemberId");
+
+                    b.HasIndex("TeamMemberId");
+
+                    b.ToTable("ProjectMembers");
+                });
+
+            modelBuilder.Entity("PSL.ProjectHub.Domain.Entities.ProjectMetric", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Unit")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Value")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("ProjectMetrics");
+                });
+
             modelBuilder.Entity("PSL.ProjectHub.Domain.Entities.ProjectNote", b =>
                 {
                     b.Property<Guid>("Id")
@@ -562,6 +635,36 @@ namespace PSL.ProjectHub.Infrastructure.Data.Migrations
                     b.HasIndex("TechnologyId");
 
                     b.ToTable("ProjectTechnologies");
+                });
+
+            modelBuilder.Entity("PSL.ProjectHub.Domain.Entities.TeamMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TeamMembers");
                 });
 
             modelBuilder.Entity("PSL.ProjectHub.Domain.Entities.Technology", b =>
@@ -784,6 +887,36 @@ namespace PSL.ProjectHub.Infrastructure.Data.Migrations
                     b.Navigation("ProjectComponent");
                 });
 
+            modelBuilder.Entity("PSL.ProjectHub.Domain.Entities.ProjectMember", b =>
+                {
+                    b.HasOne("PSL.ProjectHub.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PSL.ProjectHub.Domain.Entities.TeamMember", "TeamMember")
+                        .WithMany("Projects")
+                        .HasForeignKey("TeamMemberId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("TeamMember");
+                });
+
+            modelBuilder.Entity("PSL.ProjectHub.Domain.Entities.ProjectMetric", b =>
+                {
+                    b.HasOne("PSL.ProjectHub.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("PSL.ProjectHub.Domain.Entities.ProjectNote", b =>
                 {
                     b.HasOne("PSL.ProjectHub.Domain.Entities.Project", "Project")
@@ -856,6 +989,11 @@ namespace PSL.ProjectHub.Infrastructure.Data.Migrations
             modelBuilder.Entity("PSL.ProjectHub.Domain.Entities.ProjectComponent", b =>
                 {
                     b.Navigation("Links");
+                });
+
+            modelBuilder.Entity("PSL.ProjectHub.Domain.Entities.TeamMember", b =>
+                {
+                    b.Navigation("Projects");
                 });
 
             modelBuilder.Entity("PSL.ProjectHub.Domain.Entities.Technology", b =>

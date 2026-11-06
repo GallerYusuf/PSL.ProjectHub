@@ -59,3 +59,16 @@ public enum NoteType
     Decision,
     FuturePlan
 }
+
+/// <summary>
+/// Projenin iş tarafındaki etkisinin türü. TimeSaved, Users ve CostSaving sabit birimlidir ve
+/// portföy genelinde toplanır; Volume ve Other serbest birimlidir, yalnızca proje bazında gösterilir.
+/// </summary>
+public enum ImpactKind
+{
+    TimeSaved,   // saat/ay
+    Users,       // kullanıcı
+    CostSaving,  // TL/yıl
+    Volume,      // serbest birim (ör. fatura/gün)
+    Other
+}

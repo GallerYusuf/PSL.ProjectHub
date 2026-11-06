@@ -21,6 +21,52 @@ public class OrganizationSettings
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }
 
+/// <summary>
+/// Projenin iş etkisini ölçen elle girilmiş rakam (ör. "Ayda 120 saat manuel iş kaldırıldı").
+/// </summary>
+public class ProjectMetric
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid ProjectId { get; set; }
+    public Project Project { get; set; } = null!;
+    public ImpactKind Kind { get; set; } = ImpactKind.TimeSaved;
+    public string Label { get; set; } = string.Empty;
+    public decimal Value { get; set; }
+    /// <summary>Serbest birimli türler (Volume, Other) için birim; sabit birimli türlerde boş kalır.</summary>
+    public string? Unit { get; set; }
+    public string? Note { get; set; }
+    public int DisplayOrder { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+}
+
+/// <summary>
+/// Yazılım ekibinin bir üyesi. Projelere ProjectMember üzerinden rolüyle atanır.
+/// </summary>
+public class TeamMember
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string FullName { get; set; } = string.Empty;
+    public string? Title { get; set; }
+    public string? Email { get; set; }
+    public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public ICollection<ProjectMember> Projects { get; set; } = new List<ProjectMember>();
+}
+
+public class ProjectMember
+{
+    public Guid ProjectId { get; set; }
+    public Project Project { get; set; } = null!;
+    public Guid TeamMemberId { get; set; }
+    public TeamMember TeamMember { get; set; } = null!;
+    /// <summary>Projedeki rolü (ör. Geliştirici, Analist). Serbest metin.</summary>
+    public string Role { get; set; } = "Geliştirici";
+    /// <summary>Proje sorumlusu mu? Projede en fazla bir lider olur.</summary>
+    public bool IsLead { get; set; }
+    public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+}
+
 public class Project
 {
     public Guid Id { get; set; } = Guid.NewGuid();

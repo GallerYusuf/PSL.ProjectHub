@@ -23,6 +23,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
     public DbSet<ProjectNote> ProjectNotes => Set<ProjectNote>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<OrganizationSettings> OrganizationSettings => Set<OrganizationSettings>();
+    public DbSet<ProjectMetric> ProjectMetrics => Set<ProjectMetric>();
+    public DbSet<TeamMember> TeamMembers => Set<TeamMember>();
+    public DbSet<ProjectMember> ProjectMembers => Set<ProjectMember>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -39,6 +42,37 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
             b.Property(s => s.Tagline).HasMaxLength(300);
             b.Property(s => s.AccentColor).HasMaxLength(7).IsRequired();
             b.Property(s => s.LogoFileName).HasMaxLength(100);
+        });
+
+        builder.Entity<ProjectMetric>(b =>
+        {
+            b.HasKey(m => m.Id);
+            b.Property(m => m.Kind).HasConversion<string>().HasMaxLength(30);
+            b.Property(m => m.Label).HasMaxLength(150).IsRequired();
+            b.Property(m => m.Value).HasPrecision(18, 2);
+            b.Property(m => m.Unit).HasMaxLength(50);
+            b.Property(m => m.Note).HasMaxLength(500);
+            b.HasOne(m => m.Project).WithMany().HasForeignKey(m => m.ProjectId).OnDelete(DeleteBehavior.Cascade);
+            b.HasIndex(m => m.ProjectId);
+            // Arşivlenen projelerin etkisi portföy toplamına girmez
+            b.HasQueryFilter(m => !m.Project.IsArchived);
+        });
+
+        builder.Entity<TeamMember>(b =>
+        {
+            b.HasKey(t => t.Id);
+            b.Property(t => t.FullName).HasMaxLength(150).IsRequired();
+            b.Property(t => t.Title).HasMaxLength(150);
+            b.Property(t => t.Email).HasMaxLength(200);
+        });
+
+        builder.Entity<ProjectMember>(b =>
+        {
+            b.HasKey(pm => new { pm.ProjectId, pm.TeamMemberId });
+            b.Property(pm => pm.Role).HasMaxLength(100).IsRequired();
+            b.HasOne(pm => pm.Project).WithMany().HasForeignKey(pm => pm.ProjectId).OnDelete(DeleteBehavior.Cascade);
+            b.HasOne(pm => pm.TeamMember).WithMany(t => t.Projects).HasForeignKey(pm => pm.TeamMemberId).OnDelete(DeleteBehavior.Cascade);
+            b.HasQueryFilter(pm => !pm.Project.IsArchived);
         });
 
         // Project configuration
