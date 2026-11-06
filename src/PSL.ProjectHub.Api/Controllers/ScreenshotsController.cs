@@ -40,12 +40,15 @@ public class ScreenshotsController : ControllerBase
         _logger = logger;
     }
 
-    private string GetUploadDirectory()
+    private string GetUploadDirectory() => ResolveUploadDirectory(_configuration, _env);
+
+    /// <summary>Ekran görüntülerinin saklandığı klasör (paylaşım linki de buradan okur).</summary>
+    internal static string ResolveUploadDirectory(IConfiguration configuration, IWebHostEnvironment env)
     {
-        var configuredPath = _configuration["Storage:ScreenshotsPath"];
+        var configuredPath = configuration["Storage:ScreenshotsPath"];
         var uploadDir = !string.IsNullOrWhiteSpace(configuredPath)
             ? configuredPath
-            : Path.Combine(_env.ContentRootPath, "uploads", "screenshots");
+            : Path.Combine(env.ContentRootPath, "uploads", "screenshots");
 
         if (!Directory.Exists(uploadDir))
             Directory.CreateDirectory(uploadDir);

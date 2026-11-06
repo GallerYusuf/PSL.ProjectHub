@@ -179,7 +179,7 @@ public class SettingsController : ControllerBase
 
     private static string? NullIfEmpty(string? v) => string.IsNullOrWhiteSpace(v) ? null : v.Trim();
 
-    private static OrganizationSettingsDto ToDto(OrganizationSettings s) => new()
+    internal static OrganizationSettingsDto ToDto(OrganizationSettings s) => new()
     {
         OrganizationName = s.OrganizationName,
         TeamName = s.TeamName,

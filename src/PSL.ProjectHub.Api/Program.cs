@@ -78,6 +78,17 @@ builder.Services.AddRateLimiter(options =>
         opt.Window = TimeSpan.FromMinutes(1);
         opt.QueueLimit = 0;
     });
+
+    // Herkese açık paylaşım linkleri: IP başına sınır (anahtar tahmini ve kötüye kullanıma karşı)
+    options.AddPolicy(PSL.ProjectHub.Api.Controllers.ShareController.RateLimitPolicy, context =>
+        System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 120,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 });
 
 // Swagger / OpenAPI

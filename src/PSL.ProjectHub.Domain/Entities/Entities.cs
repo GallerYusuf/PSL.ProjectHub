@@ -41,6 +41,33 @@ public class ProjectMetric
 }
 
 /// <summary>
+/// Seçili projelerin sunumunu oturum açmadan, salt okunur ve süreli olarak gösteren paylaşım linki.
+/// Linkteki anahtarın kendisi saklanmaz; yalnızca SHA-256 özeti tutulur.
+/// </summary>
+public class ShareLink
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string TokenHash { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    /// <summary>Paylaşılan projelerin kimlikleri, virgülle ayrılmış.</summary>
+    public string ProjectIdsCsv { get; set; } = string.Empty;
+    public DateTime ExpiresAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public string? CreatedBy { get; set; }
+    public DateTime? RevokedAt { get; set; }
+    public int ViewCount { get; set; }
+    public DateTime? LastViewedAt { get; set; }
+
+    public IReadOnlyList<Guid> ProjectIds =>
+        ProjectIdsCsv.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => Guid.TryParse(s, out var g) ? g : Guid.Empty)
+            .Where(g => g != Guid.Empty)
+            .ToList();
+
+    public bool IsActive(DateTime nowUtc) => RevokedAt == null && ExpiresAt > nowUtc;
+}
+
+/// <summary>
 /// Yazılım ekibinin bir üyesi. Projelere ProjectMember üzerinden rolüyle atanır.
 /// </summary>
 public class TeamMember

@@ -74,7 +74,7 @@ public class ImpactController : ControllerBase
         };
     }
 
-    private static ProjectMetricDto ToDto(ProjectMetric m) => new()
+    internal static ProjectMetricDto ToDto(ProjectMetric m) => new()
     {
         Id = m.Id,
         ProjectId = m.ProjectId,

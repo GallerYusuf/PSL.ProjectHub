@@ -220,7 +220,7 @@ public class TeamController : ControllerBase
         member.IsActive = request.IsActive;
     }
 
-    private static ProjectMemberDto ToDto(ProjectMember pm) => new()
+    internal static ProjectMemberDto ToDto(ProjectMember pm) => new()
     {
         TeamMemberId = pm.TeamMemberId,
         FullName = pm.TeamMember.FullName,

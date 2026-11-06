@@ -26,6 +26,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
     public DbSet<ProjectMetric> ProjectMetrics => Set<ProjectMetric>();
     public DbSet<TeamMember> TeamMembers => Set<TeamMember>();
     public DbSet<ProjectMember> ProjectMembers => Set<ProjectMember>();
+    public DbSet<ShareLink> ShareLinks => Set<ShareLink>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -56,6 +57,17 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
             b.HasIndex(m => m.ProjectId);
             // Arşivlenen projelerin etkisi portföy toplamına girmez
             b.HasQueryFilter(m => !m.Project.IsArchived);
+        });
+
+        builder.Entity<ShareLink>(b =>
+        {
+            b.HasKey(s => s.Id);
+            b.Property(s => s.TokenHash).HasMaxLength(64).IsRequired();
+            b.HasIndex(s => s.TokenHash).IsUnique();
+            b.Property(s => s.Title).HasMaxLength(200).IsRequired();
+            b.Property(s => s.ProjectIdsCsv).IsRequired();
+            b.Property(s => s.CreatedBy).HasMaxLength(150);
+            b.Ignore(s => s.ProjectIds);
         });
 
         builder.Entity<TeamMember>(b =>
