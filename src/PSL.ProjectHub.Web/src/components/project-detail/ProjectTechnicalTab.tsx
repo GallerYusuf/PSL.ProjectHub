@@ -1,5 +1,7 @@
-﻿import React from "react";
+﻿import React, { useState } from "react";
+import { api } from "../../api/client";
 import {
+  Plus,
   Cpu,
   Share2,
   FileText,
@@ -13,9 +15,58 @@ import { ProjectDetailDto } from "../../types";
 
 interface ProjectTechnicalTabProps {
   project: ProjectDetailDto;
+  canEdit?: boolean;
+  /** Sürüm eklendikten sonra proje verisini yeniler. */
+  onReleaseAdded?: () => Promise<void> | void;
 }
 
-export const ProjectTechnicalTab: React.FC<ProjectTechnicalTabProps> = ({ project }) => {
+/** Sürüm / kilometre taşı ekleme formu. Kayıtlar zaman çizelgesinde de görünür. */
+const AddReleaseForm: React.FC<{ projectId: string; onAdded?: () => Promise<void> | void }> = ({ projectId, onAdded }) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const [form, setForm] = useState({ version: "", title: "", releaseDate: today, description: "" });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.version.trim() && !form.title.trim()) {
+      setError("Sürüm numarası veya başlık girin.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await api.addRelease(projectId, {
+        version: form.version.trim(),
+        title: form.title.trim(),
+        releaseDate: form.releaseDate,
+        description: form.description.trim() || undefined,
+        environment: "Production",
+      });
+      setForm({ version: "", title: "", releaseDate: today, description: "" });
+      await onAdded?.();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sürüm eklenemedi.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} aria-label="Sürüm veya kilometre taşı ekle" style={{ display: "grid", gridTemplateColumns: "110px 1fr 150px", gap: "0.5rem", marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid var(--border-subtle)" }}>
+      <input className="form-input" placeholder="v2.0" aria-label="Sürüm" value={form.version} onChange={e => setForm(f => ({ ...f, version: e.target.value }))} maxLength={50} disabled={busy} />
+      <input className="form-input" placeholder="Başlık (ör. Toplu fotoğraf yükleme)" aria-label="Sürüm başlığı" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} maxLength={200} disabled={busy} />
+      <input className="form-input" type="date" aria-label="Yayın tarihi" value={form.releaseDate} onChange={e => setForm(f => ({ ...f, releaseDate: e.target.value }))} required disabled={busy} />
+      <input className="form-input" style={{ gridColumn: "1 / -1" }} placeholder="Kısa açıklama (opsiyonel)" aria-label="Sürüm açıklaması" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} maxLength={1000} disabled={busy} />
+      <button type="submit" className="btn btn-primary btn-sm" style={{ gridColumn: "1 / -1", justifyContent: "center" }} disabled={busy}>
+        <Plus size={14} /> <span>{busy ? "Ekleniyor..." : "Sürüm / Kilometre Taşı Ekle"}</span>
+      </button>
+      {error && <div className="alert-box alert-danger" style={{ gridColumn: "1 / -1" }}><AlertCircle size={16} /> <span>{error}</span></div>}
+    </form>
+  );
+};
+
+export const ProjectTechnicalTab: React.FC<ProjectTechnicalTabProps> = ({ project, canEdit = false, onReleaseAdded }) => {
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "";
     try {
@@ -179,6 +230,8 @@ export const ProjectTechnicalTab: React.FC<ProjectTechnicalTabProps> = ({ projec
               Kayıtlı sürüm notu bulunmamaktadır.
             </p>
           )}
+
+          {canEdit && <AddReleaseForm projectId={project.id} onAdded={onReleaseAdded} />}
         </div>
 
         {/* Notlar */}

@@ -183,6 +183,17 @@ public class ProjectService : IProjectService
         return MapToDetailDto(project, includeInactiveLinks: true);
     }
 
+    /// <summary>
+    /// Proje bu güncellemeyle "Canlı" durumuna geçtiyse ve canlıya çıkış tarihi girilmemişse bugünün
+    /// tarihini yazar; böylece zaman çizelgesinde "canlıya çıktı" olayı kaybolmaz. Zaten canlı olan
+    /// (örn. geriye dönük kaydedilen) projelere tahmini tarih yazılmaz.
+    /// </summary>
+    public static void EnsureLiveDate(Project project, ProjectStatus previousStatus)
+    {
+        if (project.Status == ProjectStatus.Live && previousStatus != ProjectStatus.Live && project.LiveDate == null)
+            project.LiveDate = DateTime.UtcNow.Date;
+    }
+
     public async Task<ProjectDetailDto?> UpdateProjectAsync(Guid id, UpdateProjectRequest request, CancellationToken cancellationToken = default)
     {
         var project = await _context.Projects
@@ -198,6 +209,7 @@ public class ProjectService : IProjectService
 
         if (project == null) return null;
 
+        var previousStatus = project.Status;
         project.Name = request.Name.Trim();
         project.ShortDescription = request.ShortDescription.Trim();
         project.BusinessProblem = request.BusinessProblem?.Trim();
@@ -214,6 +226,7 @@ public class ProjectService : IProjectService
         project.CurrentVersion = request.CurrentVersion?.Trim();
         project.IsArchived = request.IsArchived;
         project.UpdatedAt = DateTime.UtcNow;
+        EnsureLiveDate(project, previousStatus);
 
         if (!string.IsNullOrWhiteSpace(request.Slug))
         {

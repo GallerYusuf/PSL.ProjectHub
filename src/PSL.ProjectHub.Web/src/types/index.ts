@@ -4,7 +4,27 @@ export type EnvironmentType = 'Production' | 'Test' | 'Development' | 'Internal'
 export type ComponentType = 'API' | 'Web' | 'Gateway' | 'Worker' | 'WindowsService' | 'ScheduledJob' | 'Other';
 export type NoteType = 'KnownIssue' | 'DevelopmentNote' | 'Decision' | 'FuturePlan';
 
-export type ImpactKind = 'TimeSaved' | 'Users' | 'CostSaving' | 'Volume' | 'Other';
+export type TimelineEventKind = 'Started' | 'WentLive' | 'Release';
+
+export interface TimelineEventDto {
+  date: string;
+  kind: TimelineEventKind;
+  projectId: string;
+  projectName: string;
+  projectSlug: string;
+  title: string;
+  version?: string;
+  description?: string;
+}
+
+export interface TimelineDto {
+  year?: number | null;
+  availableYears: number[];
+  summary: { projectsStarted: number; projectsWentLive: number; releases: number };
+  events: TimelineEventDto[];
+}
+
+export type ImpactKind ='TimeSaved' | 'Users' | 'CostSaving' | 'Volume' | 'Other';
 
 export interface ProjectMetricDto {
   id: string;

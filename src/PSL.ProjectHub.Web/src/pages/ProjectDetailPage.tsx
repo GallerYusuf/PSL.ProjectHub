@@ -335,7 +335,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
         {activeTab === "dossier" ? (
           <ProjectDossierTab project={project} />
         ) : (
-          <ProjectTechnicalTab project={project} />
+          <ProjectTechnicalTab project={project} canEdit={isAdmin} onReleaseAdded={refreshImpactTeam} />
         )}
       </div>
 

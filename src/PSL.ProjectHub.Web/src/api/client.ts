@@ -8,6 +8,7 @@ import {
   AuthUser,
   OrganizationSettings,
   ImpactSummaryDto,
+  TimelineDto,
   ProjectMetricDto,
   ProjectMetricInput,
   TeamMemberDto,
@@ -74,6 +75,11 @@ export const api = {
   // Setup (ilk kurulum)
   async getSetupStatus(): Promise<{ isInitialized: boolean; message: string }> {
     return request('/setup/status');
+  },
+
+  // Zaman çizelgesi
+  async getTimeline(year?: number): Promise<TimelineDto> {
+    return request(year ? `/timeline?year=${year}` : '/timeline');
   },
 
   // Etki metrikleri

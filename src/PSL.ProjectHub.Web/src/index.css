@@ -206,6 +206,7 @@ button, input, select, textarea {
 }
 
 .nav-link {
+  white-space: nowrap;
   padding: 0.45rem 0.75rem;
   border-radius: var(--radius-sm);
   color: var(--text-secondary);

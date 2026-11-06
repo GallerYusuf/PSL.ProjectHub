@@ -52,6 +52,9 @@ export const AdminProjectModal: React.FC<AdminProjectModalProps> = ({
   const [businessValue, setBusinessValue] = useState(initialData?.businessValue || '');
   const [currentVersion, setCurrentVersion] = useState(initialData?.currentVersion || '');
   const [techInput, setTechInput] = useState(initialData?.technologies?.join(', ') || '');
+  // Tarihler mutlaka geri gönderilir; gönderilmezse güncelleme mevcut tarihi siler
+  const [startDate, setStartDate] = useState(initialData?.startDate?.slice(0, 10) || '');
+  const [liveDate, setLiveDate] = useState(initialData?.liveDate?.slice(0, 10) || '');
   const [linkDrafts, setLinkDrafts] = useState<LinkDraft[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,6 +85,8 @@ export const AdminProjectModal: React.FC<AdminProjectModalProps> = ({
       businessSolution: businessSolution.trim() || undefined,
       businessValue: businessValue.trim() || undefined,
       currentVersion: currentVersion.trim() || undefined,
+      startDate: startDate || null,
+      liveDate: liveDate || null,
       technologies: techs,
     };
 
@@ -233,6 +238,23 @@ export const AdminProjectModal: React.FC<AdminProjectModalProps> = ({
                 <div className="form-group">
                   <label className="form-label" htmlFor="project-version">Sürüm</label>
                   <input id="project-version" className="form-input" value={currentVersion} onChange={(e) => setCurrentVersion(e.target.value)} placeholder="v1.0.0" maxLength={50} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="project-start-date">Geliştirme Başlangıcı</label>
+                  <input id="project-start-date" type="date" className="form-input" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label" htmlFor="project-live-date">Canlıya Çıkış Tarihi</label>
+                  <input id="project-live-date" type="date" className="form-input" value={liveDate} onChange={(e) => setLiveDate(e.target.value)} />
+                  {status === 'Live' && initialData && initialData.status !== 'Live' && !liveDate && (
+                    <small style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>Boş bırakılırsa bugünün tarihi yazılır.</small>
+                  )}
+                  {status === 'Live' && (!initialData || initialData.status === 'Live') && !liveDate && (
+                    <small style={{ color: 'var(--text-muted)', fontSize: '0.72rem' }}>Zaman çizelgesinde görünmesi için girin.</small>
+                  )}
                 </div>
               </div>
 
