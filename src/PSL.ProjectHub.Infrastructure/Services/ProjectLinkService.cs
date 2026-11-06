@@ -43,7 +43,7 @@ public class ProjectLinkService : IProjectLinkService
 
         // Check for duplicate URL within the same project
         var isDuplicate = await _context.ProjectLinks
-            .AnyAsync(l => l.ProjectId == projectId && l.Url.ToLower() == normalizedUrl.ToLower(), cancellationToken);
+            .AnyAsync(l => l.ProjectId == projectId && l.Url.ToLower() == normalizedUrl.ToLowerInvariant(), cancellationToken);
 
         if (isDuplicate)
         {
@@ -118,7 +118,7 @@ public class ProjectLinkService : IProjectLinkService
 
         // Check for duplicate URL in same project under another link id
         var isDuplicate = await _context.ProjectLinks
-            .AnyAsync(l => l.ProjectId == link.ProjectId && l.Id != linkId && l.Url.ToLower() == normalizedUrl.ToLower(), cancellationToken);
+            .AnyAsync(l => l.ProjectId == link.ProjectId && l.Id != linkId && l.Url.ToLower() == normalizedUrl.ToLowerInvariant(), cancellationToken);
 
         if (isDuplicate)
         {

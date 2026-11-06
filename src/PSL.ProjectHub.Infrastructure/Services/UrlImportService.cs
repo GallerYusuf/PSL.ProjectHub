@@ -67,7 +67,7 @@ public class UrlImportService : IUrlImportService
             var cleanSlug = UrlValidator.NormalizeSlug(item.ProjectKey);
             var project = await _context.Projects
                 .Include(p => p.Links)
-                .FirstOrDefaultAsync(p => p.Slug.ToLower() == cleanSlug.ToLower(), cancellationToken);
+                .FirstOrDefaultAsync(p => p.Slug.ToLower() == cleanSlug.ToLowerInvariant(), cancellationToken);
 
             if (project == null)
             {

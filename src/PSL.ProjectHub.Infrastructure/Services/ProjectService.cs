@@ -40,7 +40,9 @@ public class ProjectService : IProjectService
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var s = search.Trim().ToLower();
+            // Not: parametre tarafında kültürden bağımsız küçültme şart. Sunucu tr-TR kültüründe çalışırken
+            // "API".ToLower() = "apı" olur ve SQL LOWER() sonucu ("api") ile asla eşleşmez (Türkçe I sorunu).
+            var s = search.Trim().ToLowerInvariant();
             query = query.Where(p => p.Name.ToLower().Contains(s) ||
                                      p.ShortDescription.ToLower().Contains(s) ||
                                      (p.OwnerName != null && p.OwnerName.ToLower().Contains(s)));
@@ -58,7 +60,7 @@ public class ProjectService : IProjectService
 
         if (!string.IsNullOrWhiteSpace(owner))
         {
-            query = query.Where(p => p.OwnerName != null && p.OwnerName.ToLower().Contains(owner.Trim().ToLower()));
+            query = query.Where(p => p.OwnerName != null && p.OwnerName.ToLower().Contains(owner.Trim().ToLowerInvariant()));
         }
 
         if (!string.IsNullOrWhiteSpace(technology))
@@ -77,7 +79,7 @@ public class ProjectService : IProjectService
         }
 
         // Sorting
-        query = sortBy?.ToLower() switch
+        query = sortBy?.ToLowerInvariant() switch
         {
             "name" => query.OrderBy(p => p.Name),
             "name_desc" => query.OrderByDescending(p => p.Name),
@@ -270,7 +272,7 @@ public class ProjectService : IProjectService
                 if (!currentTechNames.Contains(techName, StringComparer.OrdinalIgnoreCase))
                 {
                     var tech = await _context.Technologies
-                        .FirstOrDefaultAsync(t => t.Name.ToLower() == techName.ToLower(), cancellationToken);
+                        .FirstOrDefaultAsync(t => t.Name.ToLower() == techName.ToLowerInvariant(), cancellationToken);
 
                     if (tech == null)
                     {
