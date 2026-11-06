@@ -77,6 +77,23 @@ public class SetupAndSecurityEndpointTests
         Assert.True(status.IsInitialized);
     }
 
+    [Theory]
+    [InlineData("PasswordRequiresNonAlphanumeric", "sembol")]
+    [InlineData("PasswordRequiresUpper", "büyük harf")]
+    [InlineData("PasswordRequiresDigit", "rakam")]
+    [InlineData("DuplicateEmail", "e-posta")]
+    public void SetupController_TranslatesIdentityErrors_ToTurkish(string code, string expectedFragment)
+    {
+        var text = SetupController.TranslateIdentityError(code, "fallback");
+        Assert.Contains(expectedFragment, text, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void SetupController_TranslateIdentityError_FallsBackForUnknownCodes()
+    {
+        Assert.Equal("orijinal", SetupController.TranslateIdentityError("SomethingNew", "orijinal"));
+    }
+
     [Fact]
     public async Task SetupController_Initialize_ReturnsConflict_WhenCalledSecondTime()
     {

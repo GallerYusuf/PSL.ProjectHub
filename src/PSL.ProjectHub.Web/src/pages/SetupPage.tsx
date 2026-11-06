@@ -6,6 +6,15 @@ interface SetupPageProps {
   onComplete: () => void;
 }
 
+/** Sunucudaki ASP.NET Identity şifre politikasıyla birebir aynı kurallar. */
+const PASSWORD_RULES: { label: string; test: (p: string) => boolean }[] = [
+  { label: "en az 8 karakter", test: p => p.length >= 8 },
+  { label: "büyük harf", test: p => /[A-ZÇĞİÖŞÜ]/.test(p) },
+  { label: "küçük harf", test: p => /[a-zçğıöşü]/.test(p) },
+  { label: "rakam", test: p => /[0-9]/.test(p) },
+  { label: "sembol (! * . - gibi)", test: p => /[^A-Za-z0-9ÇĞİÖŞÜçğıöşü]/.test(p) },
+];
+
 function getPasswordStrength(password: string): { score: number; label: string; color: string } {
   let score = 0;
   if (password.length >= 8) score++;
@@ -58,8 +67,9 @@ export const SetupPage: React.FC<SetupPageProps> = ({ onComplete }) => {
       setError("Şifreler eşleşmiyor. Lütfen her iki alana da aynı şifreyi giriniz.");
       return;
     }
-    if (form.adminPassword.length < 8) {
-      setError("Güvenliğiniz için yönetici şifresi en az 8 karakter olmalıdır.");
+    const missing = PASSWORD_RULES.filter(r => !r.test(form.adminPassword)).map(r => r.label);
+    if (missing.length > 0) {
+      setError(`Şifre şu kuralları karşılamıyor: ${missing.join(", ")}.`);
       return;
     }
     setSubmitting(true);
@@ -323,6 +333,17 @@ export const SetupPage: React.FC<SetupPageProps> = ({ onComplete }) => {
               <span style={{ fontWeight: 700, color: strength.color }}>{strength.label}</span>
             </div>
           )}
+
+          <ul aria-label="Şifre kuralları" style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexWrap: "wrap", gap: "0.35rem 0.85rem", fontSize: "0.76rem" }}>
+            {PASSWORD_RULES.map(rule => {
+              const ok = rule.test(form.adminPassword);
+              return (
+                <li key={rule.label} style={{ color: ok ? "var(--status-live)" : "var(--text-muted)", fontWeight: ok ? 600 : 400 }}>
+                  {ok ? "✓" : "○"} {rule.label}
+                </li>
+              );
+            })}
+          </ul>
 
           <button
             type="submit"

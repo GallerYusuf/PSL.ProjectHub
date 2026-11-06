@@ -39,6 +39,24 @@ public class SetupController : ControllerBase
     }
 
     /// <summary>
+    /// ASP.NET Identity hata kodlarını kullanıcının anlayacağı Türkçe açıklamalara çevirir.
+    /// </summary>
+    public static string TranslateIdentityError(string code, string fallback) => code switch
+    {
+        "PasswordTooShort" => "Şifre en az 8 karakter olmalı.",
+        "PasswordRequiresDigit" => "Şifre en az bir rakam içermeli.",
+        "PasswordRequiresLower" => "Şifre en az bir küçük harf içermeli.",
+        "PasswordRequiresUpper" => "Şifre en az bir büyük harf içermeli.",
+        "PasswordRequiresNonAlphanumeric" => "Şifre en az bir sembol içermeli (örn. ! * . -).",
+        "PasswordRequiresUniqueChars" => "Şifrede daha fazla farklı karakter kullanılmalı.",
+        "InvalidUserName" => "Kullanıcı adı yalnızca harf, rakam ve - . _ @ + karakterlerini içerebilir.",
+        "DuplicateUserName" => "Bu kullanıcı adı zaten kullanılıyor.",
+        "InvalidEmail" => "E-posta adresi geçersiz.",
+        "DuplicateEmail" => "Bu e-posta adresi zaten kullanılıyor.",
+        _ => fallback
+    };
+
+    /// <summary>
     /// Sistemin ilk kurulum durumunu döndürür.
     /// Hassas sistem bilgisi içermez.
     /// </summary>
@@ -108,10 +126,11 @@ public class SetupController : ControllerBase
         var result = await _userManager.CreateAsync(adminUser, request.AdminPassword);
         if (!result.Succeeded)
         {
+            var reasons = result.Errors.Select(e => TranslateIdentityError(e.Code, e.Description)).Distinct().ToList();
             return BadRequest(new
             {
-                message = "Kullanıcı oluşturulamadı.",
-                errors = result.Errors.Select(e => e.Description)
+                message = "Kullanıcı oluşturulamadı: " + string.Join(" ", reasons),
+                errors = reasons
             });
         }
 
