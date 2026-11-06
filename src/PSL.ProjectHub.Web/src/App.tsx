@@ -30,9 +30,20 @@ export const AppContent: React.FC = () => {
 
   // İlk kurulum kontrolü
   useEffect(() => {
-    api.getSetupStatus()
-      .then(status => setNeedsSetup(!status.isInitialized))
-      .catch(() => setNeedsSetup(false)); // Hata durumunda normal akışa geç
+    // API henüz ayağa kalkmadıysa kurulum yapılmış sanılmasın: cevap gelene kadar tekrar dene
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const check = (attempt: number) => {
+      api.getSetupStatus()
+        .then(status => { if (!cancelled) setNeedsSetup(!status.isInitialized); })
+        .catch(() => {
+          if (cancelled) return;
+          if (attempt < 10) timer = setTimeout(() => check(attempt + 1), 1500);
+          else setNeedsSetup(false);
+        });
+    };
+    check(0);
+    return () => { cancelled = true; clearTimeout(timer); };
   }, []);
 
   // Global Sunum Modu ve Yeni Proje Modalı

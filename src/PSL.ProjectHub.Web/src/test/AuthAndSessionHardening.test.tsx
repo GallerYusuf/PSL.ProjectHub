@@ -17,6 +17,8 @@ describe('Kimlik Doğrulama ve Oturum Sertleştirme Testleri', () => {
     localStorage.clear();
     window.location.hash = '';
     vi.restoreAllMocks();
+    // Bu testler kurulumu tamamlanmış bir sistemi varsayar
+    vi.spyOn(api, 'getSetupStatus').mockResolvedValue({ isInitialized: true, message: '' });
   });
 
   it('1. Oturum açmamış kullanıcı doğrudan login ekranını görür', async () => {
