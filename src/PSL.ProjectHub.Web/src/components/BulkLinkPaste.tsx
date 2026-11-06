@@ -116,7 +116,7 @@ export const BulkLinkPaste: React.FC<BulkLinkPasteProps> = ({ onChange, disabled
     <div>
       <textarea
         className="form-textarea"
-        style={{ minHeight: '96px', fontFamily: 'var(--font-mono, monospace)', fontSize: '0.82rem' }}
+        style={{ width: '100%', boxSizing: 'border-box', minHeight: '96px', fontFamily: 'var(--font-mono, monospace)', fontSize: '0.82rem' }}
         value={text}
         onChange={e => setText(e.target.value)}
         disabled={disabled}

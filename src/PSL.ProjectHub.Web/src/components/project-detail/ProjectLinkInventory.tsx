@@ -11,6 +11,7 @@ import {
   ClipboardPaste
 } from "lucide-react";
 import { ProjectLinkDto } from "../../types";
+import { ENVIRONMENT_LABELS, LINK_TYPE_LABELS } from "../../utils/linkGuess";
 
 interface ProjectLinkInventoryProps {
   links: ProjectLinkDto[];
@@ -138,12 +139,12 @@ export const ProjectLinkInventory: React.FC<ProjectLinkInventoryProps> = ({
                   </td>
                   <td style={{ padding: "0.75rem" }}>
                     <span className="badge" style={{ background: "var(--bg-subtle)", fontSize: "0.74rem" }}>
-                      {link.environmentText || link.environment}
+                      {ENVIRONMENT_LABELS[link.environment] ?? link.environment}
                     </span>
                   </td>
                   <td style={{ padding: "0.75rem" }}>
                     <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>
-                      {link.linkTypeText || link.linkType}
+                      {LINK_TYPE_LABELS[link.linkType] ?? link.linkType}
                     </span>
                   </td>
                   <td style={{ padding: "0.75rem" }}>

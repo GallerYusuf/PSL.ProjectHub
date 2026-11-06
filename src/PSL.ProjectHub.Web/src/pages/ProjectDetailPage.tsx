@@ -48,6 +48,7 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
   const [linkToDelete, setLinkToDelete] = useState<ProjectLinkDto | null>(null);
   const [bulkLinkOpen, setBulkLinkOpen] = useState(false);
   const [editProjectOpen, setEditProjectOpen] = useState(false);
+  const [editFocusField, setEditFocusField] = useState<string | undefined>(undefined);
 
   // Screenshot Yükleme Modalı
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -233,10 +234,13 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       {isAdmin && (
         <ProjectCompleteness
           project={project}
-          onAction={(action: CompletenessAction) => {
+          onAction={(action: CompletenessAction, field?: string) => {
             if (action === "links") setBulkLinkOpen(true);
             else if (action === "screenshot") setUploadModalOpen(true);
-            else setEditProjectOpen(true);
+            else {
+              setEditFocusField(field);
+              setEditProjectOpen(true);
+            }
           }}
         />
       )}
@@ -433,7 +437,8 @@ export const ProjectDetailPage: React.FC<ProjectDetailPageProps> = ({
       {editProjectOpen && (
         <AdminProjectModal
           initialData={project}
-          onClose={() => setEditProjectOpen(false)}
+          focusField={editFocusField}
+          onClose={() => { setEditProjectOpen(false); setEditFocusField(undefined); }}
           onSave={async (data) => {
             const updated = await api.updateProject(project.id, data);
             await loadProject();

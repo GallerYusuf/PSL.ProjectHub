@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Save, AlertCircle, ChevronDown, ChevronUp, Link2 } from 'lucide-react';
 import { ProjectStatus, ProjectDetailDto } from '../types';
 import { BulkLinkPaste, saveLinkDrafts, SaveLinksResult } from './BulkLinkPaste';
@@ -16,6 +16,8 @@ interface AdminProjectModalProps {
   onSave: (data: any) => Promise<ProjectDetailDto | void>;
   /** Yeni proje ve linkleri kaydedildikten sonra çağrılır (ör. proje sayfasına gitmek için). */
   onCreated?: (project: ProjectDetailDto, links: SaveLinksResult) => void;
+  /** Açılışta odaklanılacak alanın id'si (ör. eksik alan kartından gelindiğinde). */
+  focusField?: string;
 }
 
 export const AdminProjectModal: React.FC<AdminProjectModalProps> = ({
@@ -23,8 +25,18 @@ export const AdminProjectModal: React.FC<AdminProjectModalProps> = ({
   onClose,
   onSave,
   onCreated,
+  focusField,
 }) => {
   const isNew = !initialData;
+
+  useEffect(() => {
+    if (!focusField) return;
+    const el = document.getElementById(focusField);
+    if (el) {
+      el.scrollIntoView({ block: 'center' });
+      (el as HTMLInputElement).focus();
+    }
+  }, [focusField]);
   const [showAll, setShowAll] = useState(!isNew);
   const [name, setName] = useState(initialData?.name || '');
   const [slug, setSlug] = useState(initialData?.slug || '');

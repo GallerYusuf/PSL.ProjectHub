@@ -66,8 +66,9 @@ describe('Proje dosyası doluluk kartı', () => {
 
     expect(screen.getByText('Sunuma hazırlık: %0')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '+ Ekran görüntüsü' }));
-    expect(onAction).toHaveBeenCalledWith('screenshot');
+    expect(onAction).toHaveBeenCalledWith('screenshot', undefined);
     fireEvent.click(screen.getByRole('button', { name: '+ Şirkete değeri' }));
-    expect(onAction).toHaveBeenCalledWith('edit');
+    // Düzenleme formu ilgili alana odaklanarak açılır
+    expect(onAction).toHaveBeenCalledWith('edit', 'project-value');
   });
 });

@@ -8,6 +8,8 @@ interface CheckItem {
   label: string;
   done: boolean;
   action: CompletenessAction;
+  /** Düzenleme formunda odaklanılacak alanın id'si. */
+  field?: string;
 }
 
 /** Bir projenin sunuma hazır olması için doldurulması gereken alanları değerlendirir. */
@@ -15,19 +17,19 @@ export function evaluateCompleteness(project: ProjectDetailDto): CheckItem[] {
   const has = (v?: string | null) => !!v && v.trim().length > 0;
   return [
     { label: 'Ana bağlantı', done: (project.links ?? []).some(l => l.isActive !== false), action: 'links' },
-    { label: 'Çözülen iş problemi', done: has(project.businessProblem), action: 'edit' },
-    { label: 'Getirilen çözüm', done: has(project.businessSolution), action: 'edit' },
-    { label: 'Şirkete değeri', done: has(project.businessValue), action: 'edit' },
-    { label: 'Proje sorumlusu', done: has(project.ownerName), action: 'edit' },
-    { label: 'Hedef kullanıcılar', done: has(project.targetUsers), action: 'edit' },
-    { label: 'Teknolojiler', done: (project.technologies ?? []).length > 0, action: 'edit' },
+    { label: 'Çözülen iş problemi', done: has(project.businessProblem), action: 'edit', field: 'project-problem' },
+    { label: 'Getirilen çözüm', done: has(project.businessSolution), action: 'edit', field: 'project-solution' },
+    { label: 'Şirkete değeri', done: has(project.businessValue), action: 'edit', field: 'project-value' },
+    { label: 'Proje sorumlusu', done: has(project.ownerName), action: 'edit', field: 'project-owner' },
+    { label: 'Hedef kullanıcılar', done: has(project.targetUsers), action: 'edit', field: 'project-target-users' },
+    { label: 'Teknolojiler', done: (project.technologies ?? []).length > 0, action: 'edit', field: 'project-techs' },
     { label: 'Ekran görüntüsü', done: (project.screenshots ?? []).length > 0, action: 'screenshot' },
   ];
 }
 
 interface ProjectCompletenessProps {
   project: ProjectDetailDto;
-  onAction: (action: CompletenessAction) => void;
+  onAction: (action: CompletenessAction, field?: string) => void;
 }
 
 /**
@@ -56,7 +58,7 @@ export const ProjectCompleteness: React.FC<ProjectCompletenessProps> = ({ projec
             — {missing.length} eksik alan
           </span>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => onAction(missing[0].action)}>
+        <button className="btn btn-primary btn-sm" onClick={() => onAction(missing[0].action, missing[0].field)}>
           Eksikleri Tamamla
         </button>
       </div>
@@ -78,7 +80,7 @@ export const ProjectCompleteness: React.FC<ProjectCompletenessProps> = ({ projec
             type="button"
             className="btn btn-secondary btn-sm"
             style={{ fontSize: '0.76rem', padding: '0.2rem 0.6rem' }}
-            onClick={() => onAction(item.action)}
+            onClick={() => onAction(item.action, item.field)}
           >
             + {item.label}
           </button>
