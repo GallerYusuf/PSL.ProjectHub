@@ -22,10 +22,24 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, 
     public DbSet<ProjectRelease> ProjectReleases => Set<ProjectRelease>();
     public DbSet<ProjectNote> ProjectNotes => Set<ProjectNote>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<OrganizationSettings> OrganizationSettings => Set<OrganizationSettings>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<OrganizationSettings>(b =>
+        {
+            b.HasKey(s => s.Id);
+            b.Property(s => s.Id).ValueGeneratedNever();
+            b.Property(s => s.OrganizationName).HasMaxLength(200).IsRequired();
+            b.Property(s => s.TeamName).HasMaxLength(150).IsRequired();
+            b.Property(s => s.DirectorName).HasMaxLength(150);
+            b.Property(s => s.DirectorTitle).HasMaxLength(150);
+            b.Property(s => s.Tagline).HasMaxLength(300);
+            b.Property(s => s.AccentColor).HasMaxLength(7).IsRequired();
+            b.Property(s => s.LogoFileName).HasMaxLength(100);
+        });
 
         // Project configuration
         builder.Entity<Project>(b =>

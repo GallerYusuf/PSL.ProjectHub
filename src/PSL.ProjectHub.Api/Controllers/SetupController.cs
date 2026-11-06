@@ -21,14 +21,17 @@ public class SetupController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
     private readonly DataSeeder _seeder;
+    private readonly AppDbContext _context;
     private readonly ILogger<SetupController> _logger;
 
     public SetupController(
         UserManager<ApplicationUser> userManager,
         RoleManager<ApplicationRole> roleManager,
         DataSeeder seeder,
+        AppDbContext context,
         ILogger<SetupController> logger)
     {
+        _context = context;
         _userManager = userManager;
         _roleManager = roleManager;
         _seeder = seeder;
@@ -79,6 +82,16 @@ public class SetupController : ControllerBase
             return BadRequest(new { message = "Şifre en az 8 karakter olmalıdır." });
         }
 
+        if (string.IsNullOrWhiteSpace(request.OrganizationName))
+        {
+            return BadRequest(new { message = "Firma adı zorunludur." });
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.AccentColor) && !SettingsController.IsValidColor(request.AccentColor))
+        {
+            return BadRequest(new { message = "Vurgu rengi #RRGGBB formatında olmalıdır." });
+        }
+
         // Rolleri oluştur
         await _seeder.SeedAsync();
 
@@ -103,6 +116,17 @@ public class SetupController : ControllerBase
         }
 
         await _userManager.AddToRoleAsync(adminUser, "Admin");
+
+        // Firma kimliği: uygulamanın tüm başlıkları, sunum kapağı ve paylaşım sayfası buradan beslenir
+        var settings = await SettingsController.GetOrCreateAsync(_context, CancellationToken.None);
+        settings.OrganizationName = request.OrganizationName.Trim();
+        settings.TeamName = string.IsNullOrWhiteSpace(request.TeamName) ? "Yazılım Ekibi" : request.TeamName.Trim();
+        settings.DirectorName = string.IsNullOrWhiteSpace(request.DirectorName) ? null : request.DirectorName.Trim();
+        settings.DirectorTitle = string.IsNullOrWhiteSpace(request.DirectorTitle) ? null : request.DirectorTitle.Trim();
+        if (!string.IsNullOrWhiteSpace(request.AccentColor))
+            settings.AccentColor = request.AccentColor.ToLowerInvariant();
+        settings.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
 
         _logger.LogInformation(
             "Sistem ilk kurulumu tamamlandı. Admin kullanıcısı oluşturuldu: {Username}",

@@ -5,7 +5,8 @@ import {
   ProjectLinkDto,
   ProjectScreenshotDto,
   ProjectStatus,
-  AuthUser
+  AuthUser,
+  OrganizationSettings
 } from '../types';
 
 const API_BASE = '/api';
@@ -70,8 +71,50 @@ export const api = {
     return request('/setup/status');
   },
 
+  // Firma ayarları
+  async getBranding(): Promise<OrganizationSettings> {
+    return request('/settings/branding');
+  },
+
+  async getSettings(): Promise<OrganizationSettings> {
+    return request('/settings');
+  },
+
+  async updateSettings(data: Omit<OrganizationSettings, 'logoUrl'>): Promise<OrganizationSettings> {
+    return request('/settings', { method: 'PUT', body: JSON.stringify(data) });
+  },
+
+  async uploadLogo(file: File): Promise<OrganizationSettings> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch(`${API_BASE}/settings/logo`, {
+      method: 'POST',
+      headers: getAuthHeader(),
+      body: formData,
+    });
+    if (!response.ok) {
+      let message = `Logo yüklenemedi (HTTP ${response.status})`;
+      try {
+        const data = await response.json();
+        message = data.message || message;
+      } catch {
+        // fallback
+      }
+      throw new Error(message);
+    }
+    return response.json();
+  },
+
+  async deleteLogo(): Promise<OrganizationSettings> {
+    return request('/settings/logo', { method: 'DELETE' });
+  },
+
   async initializeSystem(data: {
     organizationName: string;
+    teamName?: string;
+    directorName?: string;
+    directorTitle?: string;
+    accentColor?: string;
     adminUsername: string;
     adminEmail: string;
     adminPassword: string;

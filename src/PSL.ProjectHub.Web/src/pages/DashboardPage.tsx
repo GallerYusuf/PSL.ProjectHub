@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { api } from '../api/client';
 import { DashboardMetricsDto, ProjectSummaryDto } from '../types';
+import { useBranding } from '../context/BrandingContext';
 
 interface DashboardPageProps {
   onNavigateProjects: () => void;
@@ -24,6 +25,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onViewDetails,
   onStartPresentation,
 }) => {
+  const { branding } = useBranding();
   const [metrics, setMetrics] = useState<DashboardMetricsDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +84,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.5rem' }}>
         <div>
           <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.2rem' }}>
-            PSL İÇ VE DIŞ TİCARET A.Ş. • OPERASYON MERKEZİ
+            {[branding.organizationName, branding.teamName].filter(Boolean).join(' • ')}
           </div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
             Proje ve Servis Envanteri

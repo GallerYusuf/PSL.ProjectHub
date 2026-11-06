@@ -21,6 +21,7 @@ import {
 import { ProjectDetailDto } from "../types";
 import { AuthContext } from "../context/AuthContext";
 import { AuthenticatedImage } from "./AuthenticatedImage";
+import { useBranding } from "../context/BrandingContext";
 
 interface PresentationModalProps {
   project: ProjectDetailDto;
@@ -42,6 +43,7 @@ export const PresentationModal: React.FC<PresentationModalProps> = ({
   isPresenter: isPresenterProp
 }) => {
   const authContext = useContext(AuthContext);
+  const { branding } = useBranding();
   const isPresenter = isPresenterProp ?? (
     authContext?.user?.roles?.includes("Admin") ||
     authContext?.user?.roles?.includes("Presenter") ||
@@ -155,7 +157,7 @@ export const PresentationModal: React.FC<PresentationModalProps> = ({
             style={{ fontSize: "0.8rem", padding: "0.3rem 0.75rem", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}
           >
             <Sparkles size={13} />
-            <span>PSL Executive Sunum Modu</span>
+            <span>{branding.teamName} • Sunum</span>
           </span>
 
           <span className="badge" style={{ background: "#334155", color: "#f8fafc" }}>

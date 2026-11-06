@@ -20,6 +20,7 @@ import { api } from '../api/client';
 import { ProjectSummaryDto, ProjectStatus } from '../types';
 import { ProjectCard } from '../components/ProjectCard';
 import { useAuth } from '../context/AuthContext';
+import { useBranding } from '../context/BrandingContext';
 
 interface ProjectsPageProps {
   onViewDetails: (slug: string) => void;
@@ -35,6 +36,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
   initialSearch = ''
 }) => {
   const { isAdmin } = useAuth();
+  const { branding } = useBranding();
   const [projects, setProjects] = useState<ProjectSummaryDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,7 +107,7 @@ export const ProjectsPage: React.FC<ProjectsPageProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.2rem' }}>
-            PSL PROJECT HUB • PORTFÖY İNDEKSİ
+            {branding.teamName} • Portföy İndeksi
           </div>
           <h1 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.02em', margin: 0 }}>
             Proje ve Uygulama Envanteri

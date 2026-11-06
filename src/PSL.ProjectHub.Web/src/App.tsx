@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { BrandingProvider, PRODUCT_NAME, useBranding } from './context/BrandingContext';
 import { Navbar } from './components/Navbar';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProjectsPage } from './pages/ProjectsPage';
@@ -20,6 +21,12 @@ export const AppContent: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<Tab>('dashboard');
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [needsSetup, setNeedsSetup] = useState<boolean | null>(null);
+  const { branding, refresh: refreshBranding } = useBranding();
+
+  // Oturum açılınca yönetici bilgisi dahil tam firma ayarlarını yükle
+  useEffect(() => {
+    if (isAuthenticated) refreshBranding();
+  }, [isAuthenticated, refreshBranding]);
 
   // İlk kurulum kontrolü
   useEffect(() => {
@@ -118,7 +125,7 @@ export const AppContent: React.FC = () => {
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-app)' }}>
         <div style={{ textAlign: 'center' }}>
           <Layers size={36} color="var(--primary)" className="animate-spin" style={{ margin: '0 auto 1rem' }} />
-          <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1.1rem' }}>PSL Project Hub</div>
+          <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '1.1rem' }}>{branding.teamName || PRODUCT_NAME}</div>
           <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Oturum ve güvenlik yetkileri doğrulanıyor...</div>
         </div>
       </div>
@@ -127,7 +134,7 @@ export const AppContent: React.FC = () => {
 
   // Sistem ilk kez kuruluyorsa setup sayfasını göster
   if (needsSetup) {
-    return <SetupPage onComplete={() => setNeedsSetup(false)} />;
+    return <SetupPage onComplete={() => { setNeedsSetup(false); refreshBranding(); }} />;
   }
 
   // Giriş Yapılmamışsa Login Sayfasını Göster
@@ -214,7 +221,7 @@ export const AppContent: React.FC = () => {
       {/* Alt Bilgi */}
       <footer style={{ borderTop: '1px solid var(--border-subtle)', background: '#ffffff', padding: '1rem 0', marginTop: 'auto', textAlign: 'center', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
         <div className="container">
-          <div>PSL İç ve Dış Ticaret A.Ş. & Gallery Crystal © {new Date().getFullYear()} — PSL Project Hub</div>
+          <div>{branding.organizationName} © {new Date().getFullYear()} — {branding.teamName} · {PRODUCT_NAME}</div>
         </div>
       </footer>
     </div>
@@ -223,9 +230,11 @@ export const AppContent: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <BrandingProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </BrandingProvider>
   );
 };
 

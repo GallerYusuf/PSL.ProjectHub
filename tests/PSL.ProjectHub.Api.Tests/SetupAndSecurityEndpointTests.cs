@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using PSL.ProjectHub.Api.Controllers;
@@ -24,7 +25,7 @@ public class SetupAndSecurityEndpointTests
         var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<SetupController>>();
 
-        var controller = new SetupController(userManager, roleManager, seeder, logger);
+        var controller = new SetupController(userManager, roleManager, seeder, scope.ServiceProvider.GetRequiredService<AppDbContext>(), logger);
 
         var actionResult = await controller.GetStatus();
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
@@ -44,7 +45,7 @@ public class SetupAndSecurityEndpointTests
         var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<SetupController>>();
 
-        var controller = new SetupController(userManager, roleManager, seeder, logger);
+        var controller = new SetupController(userManager, roleManager, seeder, scope.ServiceProvider.GetRequiredService<AppDbContext>(), logger);
 
         var result = await controller.Initialize(new InitializeSystemRequest
         {
@@ -62,6 +63,12 @@ public class SetupAndSecurityEndpointTests
         Assert.NotNull(adminUser);
         Assert.Equal("admin@psl.com.tr", adminUser.Email);
         Assert.True(await userManager.IsInRoleAsync(adminUser, "Admin"));
+
+        // Firma adı kaydedilmeli, ekip adı verilmediyse varsayılan kullanılmalı
+        var settings = await scope.ServiceProvider.GetRequiredService<AppDbContext>()
+            .OrganizationSettings.SingleAsync();
+        Assert.Equal("PSL İç ve Dış Ticaret A.Ş.", settings.OrganizationName);
+        Assert.Equal("Yazılım Ekibi", settings.TeamName);
 
         // Status artık true dönmeli
         var statusResult = await controller.GetStatus();
@@ -81,7 +88,7 @@ public class SetupAndSecurityEndpointTests
         var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<SetupController>>();
 
-        var controller = new SetupController(userManager, roleManager, seeder, logger);
+        var controller = new SetupController(userManager, roleManager, seeder, scope.ServiceProvider.GetRequiredService<AppDbContext>(), logger);
 
         // İlk kurulum
         await controller.Initialize(new InitializeSystemRequest
@@ -117,7 +124,7 @@ public class SetupAndSecurityEndpointTests
         var seeder = scope.ServiceProvider.GetRequiredService<DataSeeder>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<SetupController>>();
 
-        var controller = new SetupController(userManager, roleManager, seeder, logger);
+        var controller = new SetupController(userManager, roleManager, seeder, scope.ServiceProvider.GetRequiredService<AppDbContext>(), logger);
 
         var result = await controller.Initialize(new InitializeSystemRequest
         {

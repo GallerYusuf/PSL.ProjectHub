@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Layers, LayoutDashboard, FolderGit2, ShieldCheck, LogIn, LogOut, UserCheck, PlaySquare, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { BrandMark, useBranding } from '../context/BrandingContext';
 
 interface NavbarProps {
   currentTab: 'dashboard' | 'projects' | 'admin' | 'login';
@@ -16,6 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSearchSubmit
 }) => {
   const { user, isAdmin, isAuthenticated, logout } = useAuth();
+  const { branding } = useBranding();
   const [searchQuery, setSearchQuery] = useState('');
 
   // Ortam tespiti (Dev / Prod)
@@ -41,17 +43,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => onSelectTab('dashboard')}
             title="Dashboard'a Git"
           >
-            <div className="brand-logo-badge">
-              <Layers size={18} />
-            </div>
+            <BrandMark size={34} />
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                <span className="brand-title">PSL Project Hub</span>
+                <span className="brand-title">{branding.teamName}</span>
                 <span className={`env-badge ${isDev ? 'env-badge-dev' : 'env-badge-prod'}`}>
                   {isDev ? 'DEV' : 'PROD'}
                 </span>
               </div>
-              <span className="brand-subtitle">Gallery Crystal / Proje Operasyon Merkezi</span>
+              <span className="brand-subtitle">{branding.organizationName || 'Proje Portföyü'}</span>
             </div>
           </div>
         </div>

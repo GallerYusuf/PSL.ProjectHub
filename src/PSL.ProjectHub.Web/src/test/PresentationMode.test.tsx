@@ -39,7 +39,7 @@ describe('PresentationModal Component', () => {
     render(<PresentationModal project={sampleDetail} onClose={onClose} />);
 
     expect(screen.getByText('Emilio Stok Sistemi')).toBeInTheDocument();
-    expect(screen.getByText('PSL Executive Sunum Modu')).toBeInTheDocument();
+    expect(screen.getByText('Yazılım Ekibi • Sunum')).toBeInTheDocument();
     expect(screen.getByText('Çözülen İş Problemi')).toBeInTheDocument();
     expect(screen.getByText('Müşteriler mağazadayken stok ve renk seçeneklerinin anlık bilinememesi.')).toBeInTheDocument();
     expect(screen.getByText('Getirilen Çözüm')).toBeInTheDocument();

@@ -17,6 +17,7 @@ import {
 import { api } from '../api/client';
 import { ProjectSummaryDto, ProjectDetailDto } from '../types';
 import { AdminProjectModal } from '../components/AdminProjectModal';
+import { OrganizationSettingsPanel } from '../components/OrganizationSettingsPanel';
 
 interface AdminPageProps {
   onViewDetails: (slug: string) => void;
@@ -202,6 +203,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onViewDetails }) => {
           <span>{error}</span>
         </div>
       )}
+
+      <OrganizationSettingsPanel />
 
       {/* URL İçe Aktarma (Import) Kartı */}
       <div className="card" style={{ marginBottom: '1.5rem', padding: '1.25rem' }}>

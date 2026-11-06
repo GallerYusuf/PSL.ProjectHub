@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from "react";
-import { Layers, ShieldCheck, AlertCircle, Building2, User, Mail, Lock, CheckCircle2, ArrowRight } from "lucide-react";
+import { Layers, ShieldCheck, AlertCircle, Building2, User, Mail, Lock, CheckCircle2, ArrowRight, Users, Palette } from "lucide-react";
 import { api } from "../api/client";
 
 interface SetupPageProps {
@@ -23,6 +23,10 @@ export const SetupPage: React.FC<SetupPageProps> = ({ onComplete }) => {
   const [step, setStep] = useState<"loading" | "setup" | "done">("loading");
   const [form, setForm] = useState({
     organizationName: "",
+    teamName: "Yazılım Ekibi",
+    directorName: "",
+    directorTitle: "",
+    accentColor: "#0f4c81",
     adminFullName: "",
     adminUsername: "",
     adminEmail: "",
@@ -62,6 +66,10 @@ export const SetupPage: React.FC<SetupPageProps> = ({ onComplete }) => {
     try {
       await api.initializeSystem({
         organizationName: form.organizationName.trim(),
+        teamName: form.teamName.trim() || undefined,
+        directorName: form.directorName.trim() || undefined,
+        directorTitle: form.directorTitle.trim() || undefined,
+        accentColor: form.accentColor,
         adminUsername: form.adminUsername.trim(),
         adminEmail: form.adminEmail.trim(),
         adminPassword: form.adminPassword,
@@ -80,7 +88,7 @@ export const SetupPage: React.FC<SetupPageProps> = ({ onComplete }) => {
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-app)" }}>
         <div style={{ textAlign: "center" }}>
           <Layers size={36} color="var(--primary)" className="animate-spin" style={{ margin: "0 auto 1rem" }} />
-          <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "1.1rem" }}>PSL Project Hub</div>
+          <div style={{ fontWeight: 700, color: "var(--text-primary)", fontSize: "1.1rem" }}>Project Hub</div>
           <div style={{ fontSize: "0.84rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>Sistem yapılandırma durumu denetleniyor...</div>
         </div>
       </div>
@@ -117,10 +125,10 @@ export const SetupPage: React.FC<SetupPageProps> = ({ onComplete }) => {
             <Layers size={24} />
           </div>
           <h1 style={{ fontSize: "1.4rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "0.25rem" }}>
-            PSL Project Hub İlk Kurulum
+            Project Hub İlk Kurulum
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.84rem" }}>
-            Yazılım operasyon merkezinizi devreye almak için başlangıç bilgilerini tanımlayınız.
+            Firma ve ekip bilgileriniz giriş ekranına, menüye ve sunum kapağına otomatik yerleşir. Hepsi sonradan Yönetim → Firma Ayarları'ndan değiştirilebilir.
           </p>
         </div>
 
@@ -134,25 +142,84 @@ export const SetupPage: React.FC<SetupPageProps> = ({ onComplete }) => {
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div style={{ borderBottom: "1px solid var(--border-subtle)", paddingBottom: "0.35rem", marginTop: "0.25rem" }}>
             <span style={{ fontSize: "0.76rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)" }}>
-              1. Kurum / Organizasyon
+              1. Firma ve Ekip
             </span>
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label htmlFor="setup-org-name" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-              <Building2 size={14} /> Organizasyon Adı
+              <Building2 size={14} /> Firma Adı
             </label>
             <input
               id="setup-org-name"
               type="text"
               className="form-control"
-              placeholder="Örn: PSL İç ve Dış Ticaret A.Ş."
+              placeholder="Örn: Örnek Teknoloji A.Ş."
               value={form.organizationName}
               onChange={e => setForm(f => ({ ...f, organizationName: e.target.value }))}
               required
               disabled={submitting}
               autoComplete="organization"
             />
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "0.75rem", alignItems: "end" }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label htmlFor="setup-team-name" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <Users size={14} /> Ekip Adı
+              </label>
+              <input
+                id="setup-team-name"
+                type="text"
+                className="form-control"
+                placeholder="Örn: Yazılım Geliştirme Ekibi"
+                value={form.teamName}
+                onChange={e => setForm(f => ({ ...f, teamName: e.target.value }))}
+                required
+                disabled={submitting}
+              />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label htmlFor="setup-accent" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <Palette size={14} /> Kurumsal Renk
+              </label>
+              <input
+                id="setup-accent"
+                type="color"
+                className="form-control"
+                style={{ width: "72px", padding: "0.2rem", height: "38px" }}
+                value={form.accentColor}
+                onChange={e => setForm(f => ({ ...f, accentColor: e.target.value }))}
+                disabled={submitting}
+              />
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label htmlFor="setup-director-name">Ekip Yöneticisi (opsiyonel)</label>
+              <input
+                id="setup-director-name"
+                type="text"
+                className="form-control"
+                placeholder="Ad Soyad"
+                value={form.directorName}
+                onChange={e => setForm(f => ({ ...f, directorName: e.target.value }))}
+                disabled={submitting}
+              />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label htmlFor="setup-director-title">Unvanı</label>
+              <input
+                id="setup-director-title"
+                type="text"
+                className="form-control"
+                placeholder="Örn: Yazılım Direktörü"
+                value={form.directorTitle}
+                onChange={e => setForm(f => ({ ...f, directorTitle: e.target.value }))}
+                disabled={submitting}
+              />
+            </div>
           </div>
 
           <div style={{ borderBottom: "1px solid var(--border-subtle)", paddingBottom: "0.35rem", marginTop: "0.5rem" }}>

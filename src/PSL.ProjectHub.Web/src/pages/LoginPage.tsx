@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Layers, LogIn, KeyRound, User, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { BrandMark, useBranding } from '../context/BrandingContext';
 
 interface LoginPageProps {
   onSuccess: () => void;
@@ -8,6 +9,7 @@ interface LoginPageProps {
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
   const { login } = useAuth();
+  const { branding } = useBranding();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,14 +39,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
       <div className="card" style={{ width: '100%', maxWidth: '420px', padding: '2.25rem' }}>
         {/* Logo ve Başlık */}
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-          <div className="brand-logo-badge" style={{ margin: '0 auto 0.85rem', width: '44px', height: '44px' }}>
-            <Layers size={22} />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.85rem' }}>
+            <BrandMark size={44} />
           </div>
           <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>
-            PSL Project Hub
+            {branding.teamName}
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-            Proje Operasyon Merkezi Yetkili Kullanıcı Girişi
+            {branding.organizationName ? `${branding.organizationName} • ` : ''}Proje portföyü girişi
           </p>
         </div>
 

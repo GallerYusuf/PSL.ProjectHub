@@ -4,6 +4,17 @@ export type EnvironmentType = 'Production' | 'Test' | 'Development' | 'Internal'
 export type ComponentType = 'API' | 'Web' | 'Gateway' | 'Worker' | 'WindowsService' | 'ScheduledJob' | 'Other';
 export type NoteType = 'KnownIssue' | 'DevelopmentNote' | 'Decision' | 'FuturePlan';
 
+/** Firma kimliği. directorName/directorTitle yalnızca oturum açıkken döner. */
+export interface OrganizationSettings {
+  organizationName: string;
+  teamName: string;
+  tagline?: string;
+  accentColor: string;
+  logoUrl?: string;
+  directorName?: string;
+  directorTitle?: string;
+}
+
 export interface ProjectLinkDto {
   id: string;
   projectId: string;

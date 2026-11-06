@@ -2,6 +2,25 @@ using PSL.ProjectHub.Domain.Enums;
 
 namespace PSL.ProjectHub.Domain.Entities;
 
+/// <summary>
+/// Kurulumu yapan firmanın kimlik ve marka bilgileri. Tabloda her zaman tek satır (Id = 1) bulunur.
+/// Uygulamadaki tüm firma adı, ekip adı, logo ve vurgu rengi buradan beslenir.
+/// </summary>
+public class OrganizationSettings
+{
+    public const int SingletonId = 1;
+
+    public int Id { get; set; } = SingletonId;
+    public string OrganizationName { get; set; } = string.Empty;
+    public string TeamName { get; set; } = "Yazılım Ekibi";
+    public string? DirectorName { get; set; }
+    public string? DirectorTitle { get; set; }
+    public string? Tagline { get; set; }
+    public string AccentColor { get; set; } = "#0f4c81";
+    public string? LogoFileName { get; set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+}
+
 public class Project
 {
     public Guid Id { get; set; } = Guid.NewGuid();

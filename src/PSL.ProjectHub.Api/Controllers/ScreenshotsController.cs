@@ -20,7 +20,7 @@ public class ScreenshotsController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly ILogger<ScreenshotsController> _logger;
 
-    private static readonly Dictionary<string, string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
+    internal static readonly Dictionary<string, string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         { ".png", "image/png" },
         { ".jpg", "image/jpeg" },
@@ -56,7 +56,7 @@ public class ScreenshotsController : ControllerBase
     /// <summary>
     /// Güvenlik: Dosya içeriğini magic bytes ile doğrular. Yalnızca uzantıya güvenmez.
     /// </summary>
-    private static bool ValidateImageMagicBytes(Stream stream, string extension)
+    internal static bool ValidateImageMagicBytes(Stream stream, string extension)
     {
         stream.Position = 0;
         using var reader = new BinaryReader(stream, System.Text.Encoding.Default, leaveOpen: true);
