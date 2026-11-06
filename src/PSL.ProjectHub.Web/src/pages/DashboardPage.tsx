@@ -15,6 +15,20 @@ import { DashboardMetricsDto, ImpactSummaryDto, ProjectSummaryDto } from '../typ
 import { formatCompact, formatNumber } from '../utils/impact';
 import { useBranding } from '../context/BrandingContext';
 
+/** Kritik entegrasyonları ada göre gruplar: "Nebim V3 ERP — 5 sisteme bağlı" gibi bağımlılık resmi verir. */
+function groupIntegrations(list: DashboardMetricsDto['criticalIntegrations']) {
+  const groups = new Map<string, { name: string; type: string; projects: Set<string> }>();
+  for (const i of list) {
+    const key = i.name.trim().toLocaleLowerCase('tr');
+    const g = groups.get(key) ?? { name: i.name.trim(), type: i.integrationType, projects: new Set<string>() };
+    g.projects.add(i.projectId);
+    groups.set(key, g);
+  }
+  return [...groups.values()]
+    .map(g => ({ name: g.name, type: g.type, count: g.projects.size }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'tr'));
+}
+
 interface DashboardPageProps {
   onNavigateProjects: () => void;
   onViewDetails: (slug: string) => void;
@@ -329,28 +343,29 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
                   Kritik olarak işaretlenmiş entegrasyon yok. Proje sayfasının Teknik sekmesinden eklenebilir.
                 </p>
               )}
-              {metrics.criticalIntegrations.map((ci) => (
+              {groupIntegrations(metrics.criticalIntegrations).slice(0, 6).map((g) => (
                 <div
-                  key={ci.id}
+                  key={g.name}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    gap: '0.75rem',
                     padding: '0.55rem 0.75rem',
                     border: '1px solid var(--border-subtle)',
                     borderRadius: 'var(--radius-sm)',
                     background: '#ffffff'
                   }}
                 >
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)' }}>
-                      {ci.name}
+                      {g.name}
                     </div>
-                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                      {ci.integrationType} {ci.description ? `— ${ci.description}` : ''}
-                    </div>
+                    <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>{g.type}</div>
                   </div>
-                  <span className="badge badge-vpn">Kritik</span>
+                  <span className="badge badge-vpn" style={{ whiteSpace: 'nowrap' }}>
+                    {g.count} sisteme bağlı
+                  </span>
                 </div>
               ))}
             </div>

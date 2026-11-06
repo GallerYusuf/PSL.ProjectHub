@@ -57,8 +57,8 @@ public class DashboardService : IDashboardService
 
         var criticalIntegrations = await _context.ProjectIntegrations
             .Include(i => i.Project)
-            .Where(i => i.IsCritical)
-            .Take(8)
+            // Arayüz entegrasyonları ada göre gruplayıp "kaç sisteme bağlı" gösterir; kesme yapılırsa sayı yanlış çıkar
+            .Where(i => i.IsCritical && !i.Project.IsArchived)
             .Select(i => new ProjectIntegrationDto
             {
                 Id = i.Id,
